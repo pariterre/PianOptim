@@ -27,6 +27,7 @@ from bioptim import (
     OdeSolver,
     Solver,
     MultinodeObjectiveList,
+    Axis,
 )
 #
 # def minimize_difference(all_pn: PenaltyNode):
@@ -142,30 +143,18 @@ def prepare_ocp(
     # Objectives
     # Minimize Torques generated into articulations
     objective_functions = ObjectiveList()
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=0, weight=100, index=[0, 1, 2, 3, 4]
-    # )
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=1, weight=100, index=[0, 1, 2, 3, 4, 5]
-    # )
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=2, weight=100, index=[0, 1, 2, 3, 4, 5]
-    # )
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=3, weight=100, index=[0, 1, 2, 4]
-    # )
-    for j in [0, 1, 2, 3, 4]:
-        for i in [0, 1, 2, 3]:
-            objective_functions.add(
-                    Minimize_Power,
-                    custom_type=ObjectiveFcn.Lagrange,
-                    segment_idx=[j],
-                    node=Node.ALL_SHOOTING,
-                    quadratic=True,
-                    phase=i,
-                    method=1,
-                    weight=100,
-                )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=0, weight=100, index=[0, 1, 2, 3, 4]
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=1, weight=100, index=[0, 1, 2, 3, 4, 5]
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=2, weight=100, index=[0, 1, 2, 3, 4, 5]
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=3, weight=100, index=[0, 1, 2, 4]
+    )
 
     # for i in [0, 3]:
     #     objective_functions.add(
@@ -173,7 +162,7 @@ def prepare_ocp(
     #     )
 
         # Special articulations called individually in order to see, in the results, the individual objectives cost of each.
-    for j in [6, 7, 8, 9]:
+    for j in [6, 8, 9]:
         for i in [0, 1, 2, 3]:
             objective_functions.add(
                     Minimize_Power,
@@ -200,18 +189,9 @@ def prepare_ocp(
         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=0.0001*5, index=[0, 1, 2, 3, 4, 5, 6, 7]
     )
 
-    for j in [3,7]:
-        for i in [0, 1, 2, 3]:
-            objective_functions.add(
-                    Minimize_Power,
-                    custom_type=ObjectiveFcn.Lagrange,
-                    segment_idx=[j],
-                    node=Node.ALL_SHOOTING,
-                    quadratic=True,
-                    phase=i,
-                    method=1,
-                    weight=10000*5,
-                )
+    for i in [0, 3]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=i, weight= 100 * 100, index = [3,7])
 
     objective_functions.add(
         ObjectiveFcn.Mayer.TRACK_MARKERS_VELOCITY,
@@ -228,7 +208,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=0,
-        weight=1000*5,
+        weight=1000*50,
         quadratic=True,
         target=pi_sur_2_phase_0,
         segment="2proxph_2mcp_flexion",
@@ -238,7 +218,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=1,
-        weight=100000*5,
+        weight=100000*50,
         quadratic=True,
         target=pi_sur_2_phase_1,
         segment="2proxph_2mcp_flexion",
@@ -248,7 +228,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=2,
-        weight=100000*5,
+        weight=100000*50,
         quadratic=True,
         target=pi_sur_2_phase_2,
         segment="2proxph_2mcp_flexion",
@@ -258,7 +238,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=3,
-        weight=1000*5,
+        weight=1000*50,
         quadratic=True,
         target=pi_sur_2_phase_3,
         segment="2proxph_2mcp_flexion",
@@ -269,7 +249,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=0,
-        weight=1000*5,
+        weight=1000*50,
         quadratic=True,
         target=pi_sur_2_phase_0,
         segment="secondmc",
@@ -279,7 +259,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=1,
-        weight=100000*5,
+        weight=100000*50,
         quadratic=True,
         target=pi_sur_2_phase_1,
         segment="secondmc",
@@ -289,7 +269,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=2,
-        weight=100000*5,
+        weight=100000*50,
         quadratic=True,
         target=pi_sur_2_phase_2,
         segment="secondmc",
@@ -299,20 +279,27 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=3,
-        weight=1000*5,
+        weight=1000*50,
         quadratic=True,
         target=pi_sur_2_phase_3,
         segment="secondmc",
     )
 
     # To avoid the apparition of "noise" caused by the objective function just before.
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=100*100, index=[8, 9], derivative=True
-    # )
-    # objective_functions.add(
-    #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=100*100, index=[8, 9], derivative=True
-    # )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=100*100, index=[8, 9], derivative=True
+    )
+    objective_functions.add(
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=100*100, index=[8, 9], derivative=True
+    )
 
+    objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_COM_POSITION, weight=-1, phase=3, node=Node.INTERMEDIATES, quadratic=False)
+
+    objective_functions.add(
+
+        ObjectiveFcn.Lagrange.MINIMIZE_SEGMENT_ROTATION, phase=3, weight=-1, segment="humerus_right", axes=[Axis.Z],  quadratic=False
+
+    )
 
     Mul_Node_Obj = MultinodeObjectiveList()
 
@@ -320,7 +307,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*5,
+        weight=1000*50,
         nodes_phase=(0, 1),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -329,7 +316,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*5,
+        weight=1000*50,
         nodes_phase=(1, 2),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -338,7 +325,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*5,
+        weight=1000*50,
         nodes_phase=(2, 3),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -504,6 +491,8 @@ def prepare_ocp(
     x_bounds[0][[0, 1, 2], 0] = 0
     x_bounds[3][[0, 1, 2], 2] = 0
 
+    x_bounds[3].min[[5], 1] = 0.7
+    x_bounds[3].max[[6], 1] = 1
     # Initial guess
     x_init = InitialGuessList()
     x_init.add([0] * (biorbd_model[0].nb_q + biorbd_model[0].nb_qdot))
