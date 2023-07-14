@@ -142,23 +142,35 @@ def prepare_ocp(
     # Objectives
     # Minimize Torques generated into articulations
     objective_functions = ObjectiveList()
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=0, weight=100, index=[0, 1, 2, 3, 4]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=1, weight=100, index=[0, 1, 2, 3, 4, 5]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=2, weight=100, index=[0, 1, 2, 3, 4, 5]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=3, weight=100, index=[0, 1, 2, 3, 4]
-    )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=0, weight=100, index=[0, 1, 2, 3, 4]
+    # )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=1, weight=100, index=[0, 1, 2, 3, 4, 5]
+    # )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=2, weight=100, index=[0, 1, 2, 3, 4, 5]
+    # )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=3, weight=100, index=[0, 1, 2, 4]
+    # )
+    for j in [0, 1, 2, 3, 4]:
+        for i in [0, 1, 2, 3]:
+            objective_functions.add(
+                    Minimize_Power,
+                    custom_type=ObjectiveFcn.Lagrange,
+                    segment_idx=[j],
+                    node=Node.ALL_SHOOTING,
+                    quadratic=True,
+                    phase=i,
+                    method=1,
+                    weight=100,
+                )
 
-    for i in [0, 3]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10*5, index=[5]
-        )
+    # for i in [0, 3]:
+    #     objective_functions.add(
+    #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10*5, index=[5]
+    #     )
 
         # Special articulations called individually in order to see, in the results, the individual objectives cost of each.
     for j in [6, 7, 8, 9]:
@@ -171,24 +183,24 @@ def prepare_ocp(
                     quadratic=True,
                     phase=i,
                     method=1,
-                    weight=100*100,
+                    weight=500,
                 )
 
 
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=0.0001*50, index=[0, 1, 2, 3, 4, 5, 6, 7]
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=0.0001*5, index=[0, 1, 2, 3, 4, 5, 6, 7]
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=1, weight=0.0001*50, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=1, weight=0.0001*5, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=2, weight=0.0001*50, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=2, weight=0.0001*5, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     )
     objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=0.0001*50, index=[0, 1, 2, 3, 4, 5, 6, 7]
+        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=0.0001*5, index=[0, 1, 2, 3, 4, 5, 6, 7]
     )
 
-    for j in [3, 7]:
+    for j in [3,7]:
         for i in [0, 1, 2, 3]:
             objective_functions.add(
                     Minimize_Power,
@@ -198,7 +210,7 @@ def prepare_ocp(
                     quadratic=True,
                     phase=i,
                     method=1,
-                    weight=10000*50,
+                    weight=10000*5,
                 )
 
     objective_functions.add(
@@ -207,7 +219,7 @@ def prepare_ocp(
         node=Node.ALL,
         phase=1,
         marker_index=4,
-        weight=10000*50,
+        weight=10000*5,
     )
 
     # To keep the hand/index perpendicular of the key piano all long the attack.
@@ -216,7 +228,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=0,
-        weight=1000*50,
+        weight=1000*5,
         quadratic=True,
         target=pi_sur_2_phase_0,
         segment="2proxph_2mcp_flexion",
@@ -226,7 +238,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=1,
-        weight=100000*50,
+        weight=100000*5,
         quadratic=True,
         target=pi_sur_2_phase_1,
         segment="2proxph_2mcp_flexion",
@@ -236,7 +248,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=2,
-        weight=100000*50,
+        weight=100000*5,
         quadratic=True,
         target=pi_sur_2_phase_2,
         segment="2proxph_2mcp_flexion",
@@ -246,7 +258,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=3,
-        weight=1000*50,
+        weight=1000*5,
         quadratic=True,
         target=pi_sur_2_phase_3,
         segment="2proxph_2mcp_flexion",
@@ -257,7 +269,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=0,
-        weight=1000*50,
+        weight=1000*5,
         quadratic=True,
         target=pi_sur_2_phase_0,
         segment="secondmc",
@@ -267,7 +279,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=1,
-        weight=100000*50,
+        weight=100000*5,
         quadratic=True,
         target=pi_sur_2_phase_1,
         segment="secondmc",
@@ -277,7 +289,7 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=2,
-        weight=100000*50,
+        weight=100000*5,
         quadratic=True,
         target=pi_sur_2_phase_2,
         segment="secondmc",
@@ -287,19 +299,19 @@ def prepare_ocp(
         custom_type=ObjectiveFcn.Lagrange,
         node=Node.ALL,
         phase=3,
-        weight=1000*50,
+        weight=1000*5,
         quadratic=True,
         target=pi_sur_2_phase_3,
         segment="secondmc",
     )
 
     # To avoid the apparition of "noise" caused by the objective function just before.
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=100*100, index=[8, 9], derivative=True
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=100*100, index=[8, 9], derivative=True
-    )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=100*100, index=[8, 9], derivative=True
+    # )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=100*100, index=[8, 9], derivative=True
+    # )
 
 
     Mul_Node_Obj = MultinodeObjectiveList()
@@ -308,7 +320,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*50,
+        weight=1000*5,
         nodes_phase=(0, 1),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -317,7 +329,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*50,
+        weight=1000*5,
         nodes_phase=(1, 2),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -326,7 +338,7 @@ def prepare_ocp(
     Mul_Node_Obj.add(
         minimize_difference,
         custom_type=ObjectiveFcn.Mayer,
-        weight=1000*50,
+        weight=1000*5,
         nodes_phase=(2, 3),
         nodes=(Node.END, Node.START),
         quadratic=True,
@@ -570,7 +582,7 @@ def main():
     )
 
     with open(
-            "/home/alpha/pianoptim/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/pressed/Results/Pdistal1.pckl",
+            "/home/alpha/pianoptim/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/pressed/Results/Pdistal2.pckl",
             "wb") as file:
         pickle.dump(data, file)
 
