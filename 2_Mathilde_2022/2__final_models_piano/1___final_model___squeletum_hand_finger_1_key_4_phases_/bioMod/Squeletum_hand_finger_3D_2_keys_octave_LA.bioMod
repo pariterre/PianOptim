@@ -4,6 +4,7 @@ version 4
 gravity 0 0 -9.81
 
 segment ground
+
 endsegment
 
 segment pelvis
@@ -15,32 +16,33 @@ segment pelvis
 		0	1	0	0
 		0	0	0	1
 	// translations	xyz
-	rotations	z
+	 rotations	z
         rangesQ //-10   10
                 //-5    5
                 //-0.5  1.5
                 //-pi/2 pi/2
-                //-pi/8 pi/8
-                -pi/8 pi/8
+              //  -pi/8 pi/8
+               -pi/16 pi/16
         rangesQdot //-5      5
  	               //-5      5
                    // -5      5
                    //-5.2360 5.2360
                    //-5.2360 5.2360
-                    -5.2360 5.2360
+                 -5.2360 5.2360
 	mass	7.8384
 	inertia
 		0.058836	0	0
 		0	0.064617	0
 		0	0	0.064617
 	com	-0.093546	-0.028679	0
+
 endsegment
 
 segment pelvis_r
     parent pelvis
      // translations xz
      // rotations zy
-        RT 0 0 0 xyz 0.13 -0.07 0
+        RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
 endsegment
 
@@ -48,7 +50,7 @@ segment pelvis_l
     parent pelvis
      // translations xz
      //rotations zy
-       RT 0 0 0 xyz 0.13 -0.07 0
+       RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
 endsegment
 
@@ -56,28 +58,29 @@ segment thorax
     parent pelvis
      // translations xz
     rotations yz
-    RT 0 0 0 xyz 0 0.13 0
+    RT 0 0 0 xyz 0.04 0.13 0
     ranges
         //-0.1 0.1
-        -0.1 0.1
-        -0.1 0.1
-endsegment
-
-segment thorax_3D
-    parent thorax
-     // translations xz
-     // rotations zy
-    RT 0 0 0 xyz 0.035 0.23 0
-    ranges
-    //  -0.1 0.1
-    //  -0.1 0.1
+       -0.1 0.1
+       -0.1 0.1
     mass	20
     com	 -0.03 -0.32 0
     inertia
         1.4745	0.000000	0.000000
         0.000000	0.7555	0.000000
         0.000000	0.000000	1.4314
-     meshfile mesh_files/thorax.vtp
+
+endsegment
+
+segment thorax_3D
+    parent thorax
+     // translations xz
+     // rotations zy
+    RT 0 0 0 xyz 0.045 0.23 0
+    ranges
+    //  -0.1 0.1
+    //  -0.1 0.1
+    meshfile mesh_files/thorax.vtp
 endsegment
 
 segment hat_spine
@@ -101,7 +104,6 @@ segment clavicle_effector_right
         0               0               0                1
 endsegment
 
-
 segment clavicle_right
     parent clavicle_effector_right
     RTinmatrix 1
@@ -114,7 +116,6 @@ segment clavicle_right
     com -0.0127205 0.00849541 0.0659846
     meshfile mesh_files/clavicle.vtp
 endsegment
-
 
 segment scapula_effector_right
       parent clavicle_right
@@ -134,16 +135,14 @@ segment scapula_right
     meshfile mesh_files/scapula.vtp
 endsegment
 
-
-
 segment humerus_right
     parent scapula_right                        // segment parent
-    RT 0 0 0 xyz -0.00955 -0.034 0.009          // roto-translation et coordonnees de l'origine de mon repere par rapport au repere globale
+    RT 0 0 0 xyz -0.00955 -0.034 0.009           // roto-translation et coordonnees de l'origine de mon repere par rapport au repere globale
 	rotations xyz                               // degres de liberte
 
 	ranges                                      // limites d angles de rotation des ddl
-	    -pi/2 0.1
-        -pi/2 pi/2
+	   -pi/2 0.1
+       -pi/2 pi/2
         -pi/4 pi
 
     mass 2.0325                                 // masse en kg du segment
@@ -154,7 +153,6 @@ segment humerus_right
         0 0 0.013409
     meshfile mesh_files/humerus.vtp             // fichier .vpt pour obtenir un maillage visuel
 endsegment
-
 
 segment ulna_effector_right
     parent humerus_right
@@ -249,11 +247,19 @@ segment lunate_deviation
 		-0.13561100050494812		0.8723808994672547		-0.4696394604233662		0
 		-0.5574440020757867		-0.4590550608547273		-0.6917547510884134		0
 		0		0		0		1
+
 	rotations x
 	ranges
 			-pi/5 pi/4
 
 			//-1.22173 1.22173
+    mass 0.4575
+    com 0 -0.068095 0
+    inertia
+        0.000892 0 0
+        0 0.000547 0
+        0 0 0.000134
+
 endsegment
 
 // Segment
@@ -1041,6 +1047,14 @@ segment 2proxph_2mcp_flexion
 		-0.0394960058829821		0.9444951422665675		-0.32614259420405034		0
 		0.05849400871297349		0.3280229853646847		0.9428570262861313		0
 		0		0		0		1
+
+	mass 0.1
+	COM 0 -0.05 0
+	inertia
+        0.000011946 0 0                            // matrice d inertie du segment pour bloquer les rotations
+        0 0.000004121 0                            // affichage par rapport a l'origine de mon repere
+        0 0 0.000013409
+
 	rotations x
 	ranges
 			-pi/4 pi/4
@@ -1575,6 +1589,11 @@ marker finger_marker
 	    position 0.0025 -0.015 0.0005
     endmarker
 
+marker MCP_contact_finger
+        parent 2proxph_2mcp_flexion
+	    position 0 0 0
+    endmarker
+
 contact    contact_finger
         parent 2distph
         position 0.0025 -0.015 0.0005
@@ -1592,60 +1611,70 @@ contact    contact_finger
 
 // touche 1 //
 segment square
+	//meshfile piano_assesmbly_asm.stl
+  //  meshrt 0 0 0 xyz 0 0 0
+   // meshcscale 0.00001 0.00001 0.00001
+
     // piano moved from 5 cm
-    mesh 0.5056114196777344+0.05 -0.17254042053222657 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.05 -0.17254042053222657 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.17254042053222657 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.14954042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.14954042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.14954042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
+
 endsegment
 
 // Touche 2 //
 segment square2
-    mesh 0.5056114196777344+0.05 -0.31754042053222653 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.05 -0.31754042053222653 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.31754042053222653 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.34054042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.34054042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.05 -0.34054042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
 endsegment
 
 // Structure //
 segment ligne
-    mesh 0.5056114196777344+0.05 0.45395957946777343 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.05 -0.14954042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 0.45395957946777343 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
 endsegment
 
 segment ligne2
-    mesh 0.5056114196777344+0.05 -0.17254042053222657 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.05 -0.31754042053222653 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
 endsegment
 
 segment ligne3
-    mesh 0.5056114196777344+0.05 -0.34054042053222655 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.05 -0.7760404205322265 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.06 -0.7760404205322265 0.07808863830566405-0.01
 endsegment
 
 // Marker attacks //
 marker high_square
     parent ground
-	    position 0.5056114196777344+0.05  -0.16104042053222656 0.07808863830566405-0.01
+	    position 0.5056114196777344+0.06  -0.16104042053222656 0.07808863830566405-0.01
+	endmarker
+
+marker phase_3_upward
+    parent ground
+	    position 0.6056114196777344+0.06  -0.16104042053222656 0.07808863830566405+0.14
 	endmarker
 
 marker low_square
 	    parent ground
-	    position 0.5056114196777344+0.05  -0.16104042053222656 0.07808863830566405-0.01-0.01
+	    position 0.5056114196777344+0.06  -0.16104042053222656 0.07808863830566405-0.01-0.01
 	endmarker
 
 marker high_square2
     parent ground
-	    position 0.5056114196777344+0.05 -0.3290404205322266 0.07808863830566405-0.01
+	    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01
 	endmarker
 
 marker low_square2
 	    parent ground
-	    position 0.5056114196777344+0.05 -0.3290404205322266 0.07808863830566405-0.01-0.01
+	    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01-0.01
 	endmarker
 
 /*
@@ -1660,3 +1689,5 @@ segment distance_thorax_side_LA
     mesh 0.5056114196777344  -0.16104042053222656 0.07808863830566405
 endsegment
 */
+
+

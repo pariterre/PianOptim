@@ -115,7 +115,7 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 
   # Prepare an Optimal Control Program (OCP) for a biomechanical model.
 def prepare_ocp(
-    biorbd_model_path: str = "/home/alpha/pianoptim/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
+    biorbd_model_path: str = "/home/alpha/Desktop/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
     ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
 ) -> OptimalControlProgram:
 
@@ -165,16 +165,16 @@ def prepare_ocp(
     # Add an objective function to minimize the torques (tau) for specific indexes
     # The weight given to this objective is 100
     objective_functions = ObjectiveList()
-    for i in [0, 1, 2, 3, 4]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
-        )
-
-    # The weight given to this objective is 10000
-    for i in [0, 1, 2, 3, 4]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10000, index=[8, 9], derivative=True
-        )
+    # for i in [0, 1, 2, 3, 4]:
+    #     objective_functions.add(
+    #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
+    #     )
+    #
+    # # The weight given to this objective is 10000
+    # for i in [0, 1, 2, 3, 4]:
+    #     objective_functions.add(
+    #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10000, index=[8, 9], derivative=True
+    #     )
 
     # Adding objective functions "Regularization Term"
     objective_functions.add(
@@ -648,7 +648,7 @@ def main():
     """
 
     ocp = prepare_ocp()
-    ocp.add_plot_penalty(CostType.ALL)
+    # ocp.add_plot_penalty(CostType.ALL)
 
     # Solving the Optimal Control Program , Configure the solver (IPOPT) for the optimization
     solv = Solver.IPOPT(show_online_optim=False)
@@ -697,8 +697,7 @@ def main():
 
     # Save the data to a .pckl file
     with open(
-            "/home/alpha/Desktop/Nov. 14/Pressed_with_Thorax.pckl",
-            "wb") as file:
+            "/home/alpha/Desktop/Nov. 14/Pressed_with_Thorax_AllObjRemoved.pckl","wb") as file:
         pickle.dump(data, file)
 
 
