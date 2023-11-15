@@ -165,16 +165,16 @@ def prepare_ocp(
     # Add an objective function to minimize the torques (tau) for specific indexes
     # The weight given to this objective is 100
     objective_functions = ObjectiveList()
-    # for i in [0, 1, 2, 3, 4]:
-    #     objective_functions.add(
-    #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
-    #     )
-    #
-    # # The weight given to this objective is 10000
-    # for i in [0, 1, 2, 3, 4]:
-    #     objective_functions.add(
-    #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10000, index=[8, 9], derivative=True
-    #     )
+    for i in [0, 1, 2, 3, 4]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
+        )
+
+    # The weight given to this objective is 10000
+    for i in [0, 1, 2, 3, 4]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10000, index=[8, 9], derivative=True
+        )
 
     # Adding objective functions "Regularization Term"
     objective_functions.add(
