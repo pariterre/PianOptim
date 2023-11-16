@@ -17,18 +17,8 @@ segment pelvis
 		0	0	0	1
 	// translations	xyz
 	 rotations	z
-        rangesQ //-10   10
-                //-5    5
-                //-0.5  1.5
-                //-pi/2 pi/2
-              //  -pi/8 pi/8
-               -pi/16 pi/16
-        rangesQdot //-5      5
- 	               //-5      5
-                   // -5      5
-                   //-5.2360 5.2360
-                   //-5.2360 5.2360
-                 -5.2360 5.2360
+        rangesQ   -pi/16 pi/16
+        rangesQdot -5.2360 5.2360
 	mass	7.8384
 	inertia
 		0.058836	0	0
@@ -40,16 +30,12 @@ endsegment
 
 segment pelvis_r
     parent pelvis
-     // translations xz
-     // rotations zy
         RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
 endsegment
 
 segment pelvis_l
     parent pelvis
-     // translations xz
-     //rotations zy
        RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
 endsegment

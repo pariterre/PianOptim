@@ -29,6 +29,8 @@ from bioptim import (
     MultinodeObjectiveList,
     Axis,
 )
+
+
 #
 # def minimize_difference(all_pn: PenaltyNode):
 #     return all_pn[0].nlp.controls.cx_end - all_pn[1].nlp.controls.cx
@@ -36,6 +38,7 @@ from bioptim import (
 def minimize_difference(controllers: list[PenaltyController, PenaltyController]):
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
+
 
 def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: PenaltyController) -> MX:
     finger_marker_idx = biorbd.marker_index(controller.model.model, "finger_marker")
@@ -50,6 +53,7 @@ def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: Pena
 
     return markers_diff_key2
 
+
 def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: PenaltyController, marker: str) -> MX:
     biorbd_model = controller.model
     finger_marker_idx = biorbd.marker_index(biorbd_model.model, marker)
@@ -60,11 +64,12 @@ def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: Pen
 
     return markers_diff_key3
 
+
 def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
     rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
     q = controller.states["q"].mx
     # global JCS gives the local matrix according to the global matrix
-    principal_finger_axis= controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
     y = MX.zeros(4)
     y[:4] = np.array([0, 1, 0, 1])
     # @ x : pour avoir l'orientation du vecteur x du jcs local exprimé dans le global
@@ -80,19 +85,17 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 
     return output_casadi
 
+
 def prepare_ocp(
     biorbd_model_path: str = "/home/alpha/pianoptim/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
     ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
 ) -> OptimalControlProgram:
-
-
     biorbd_model = (
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
-
     )
 
     # Average of N frames by phase ; Average of phases time ; both measured with the motion capture datas.
@@ -495,7 +498,6 @@ def prepare_ocp(
         phase=4,
     )
 
-
     phase_transition = PhaseTransitionList()
     phase_transition.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=1)
 
@@ -521,7 +523,6 @@ def prepare_ocp(
     # x_bounds[4]["q"][[0], 2] = -0.1
     # x_bounds[4]["q"][[2], 2] = 0.1
     x_bounds[4]["q"][[5], 2] = -0.25
-
 
     # Initial guess
     x_init = InitialGuessList()
@@ -551,16 +552,21 @@ def prepare_ocp(
     # Define control path constraint
     u_bounds = BoundsList()
 
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau,
-                 phase=0)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau,
-                 phase=1)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau,
-                 phase=2)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau,
-                 phase=3)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau,
-                 phase=4)
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau, phase=0
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau, phase=1
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau, phase=2
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau, phase=3
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau, phase=4
+    )
 
     u_init = InitialGuessList()
     u_init.add("tau", [tau_init] * biorbd_model[0].nb_tau, phase=0)
@@ -602,19 +608,21 @@ def main():
     sol = ocp.solve(solv)
 
     # # --- Download datas on a .pckl file --- #
-    q_sym = MX.sym('q_sym', 7, 1)
-    qdot_sym = MX.sym('qdot_sym', 7, 1)
-    tau_sym = MX.sym('tau_sym', 7, 1)
-    Calculaing_Force = Function("Temp", [q_sym, qdot_sym, tau_sym], [
-        ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
+    q_sym = MX.sym("q_sym", 7, 1)
+    qdot_sym = MX.sym("qdot_sym", 7, 1)
+    tau_sym = MX.sym("tau_sym", 7, 1)
+    Calculaing_Force = Function(
+        "Temp",
+        [q_sym, qdot_sym, tau_sym],
+        [ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    )
 
     rows = 9
     cols = 3
     F = [[0] * cols for _ in range(rows)]
 
     for i in range(0, 9):
-        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i],
-                                sol.controls[2]['tau'][:, i])
+        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i], sol.controls[2]["tau"][:, i])
 
     F_array = np.array(F)
 
@@ -631,12 +639,9 @@ def main():
         phase_time=sol.phase_time,
         Time=sol.time,
         Force_Values=F_array,
-
     )
 
-    with open(
-            "/home/alpha/Desktop/Nov. 14/Pressed_without_Thorax.pckl",
-            "wb") as file:
+    with open("/home/alpha/Desktop/Nov. 14/Pressed_without_Thorax.pckl", "wb") as file:
         pickle.dump(data, file)
     #
     # print("Tesults saved")

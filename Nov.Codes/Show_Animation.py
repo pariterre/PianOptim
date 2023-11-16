@@ -24,7 +24,13 @@ b = bioviz.Viz(
 )
 
 all_q = np.hstack(
-    (new_dict["states"][0]["q"], new_dict["states"][1]["q"], new_dict["states"][2]["q"], new_dict["states"][3]["q"], new_dict["states"][4]["q"])
+    (
+        new_dict["states"][0]["q"],
+        new_dict["states"][1]["q"],
+        new_dict["states"][2]["q"],
+        new_dict["states"][3]["q"],
+        new_dict["states"][4]["q"],
+    )
 )
 
 b.load_movement(all_q)

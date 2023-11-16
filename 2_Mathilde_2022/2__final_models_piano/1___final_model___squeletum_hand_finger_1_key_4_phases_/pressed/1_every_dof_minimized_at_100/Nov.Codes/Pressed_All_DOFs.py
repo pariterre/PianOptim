@@ -7,7 +7,7 @@ import time
 import numpy as np
 import biorbd_casadi as biorbd
 import pickle
-zzz
+
 from bioptim import (
     BiorbdModel,
     PenaltyController,
@@ -64,7 +64,7 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
     rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
     q = controller.states["q"].mx
     # global JCS gives the local matrix according to the global matrix
-    principal_finger_axis= controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
     y = MX.zeros(4)
     y[:4] = np.array([0, 1, 0, 1])
     # @ x : pour avoir l'orientation du vecteur x du jcs local exprimé dans le global
@@ -81,7 +81,7 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
     return output_casadi
 
 def prepare_ocp(
-    biorbd_model_path: str = "/home/alpha/pianoptim/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
+    biorbd_model_path: str = "../../../bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
     ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
 ) -> OptimalControlProgram:
 
@@ -92,236 +92,6 @@ def prepare_ocp(
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
-
-    )
-
-    # Average of N frames by phase ; Average of phases time ; both measured with the motion capture datas.
-    n_shooting = (30, 7, 9, 17, 18)
-    phase_time = (0.3, 0.044, 0.051, 0.17, 0.18)
-    tau_min, tau_max, tau_init = -200, 200, 0
-    # Velocity profile found thanks to the motion capture datas.
-    vel_push_array2 = [
-        [
-            0,
-            -0.113772161006927,
-            -0.180575996580578,
-            -0.270097219830468,
-            -0.347421549388341,
-            -0.290588704744975,
-            -0.0996376128423782,
-            0,
-        ]
-    ]
-
-    Froce = [30, 26, 24, 20, 16, 12, 8, 4, 0]
-
-    pi_sur_2_phase_0 = np.full((1, n_shooting[0] + 1), pi / 2)
-    pi_sur_2_phase_1 = np.full((1, n_shooting[1] + 1), pi / 2)
-    pi_sur_2_phase_2 = np.full((1, n_shooting[2] + 1), pi / 2)
-    pi_sur_2_phase_3 = np.full((1, n_shooting[3] + 1), pi / 2)
-    pi_sur_2_phase_4 = np.full((1, n_shooting[4] + 1), pi / 2)
-
-    # Objectives
-    # Minimize Torques generated into articulations
-    objective_functions = ObjectiveList()
-    for i in [0, 1, 2, 3, 4]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
-        )
-
-    for i in [0, 1, 2, 3, 4]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=10000, index=[8, 9], derivative=True
-        )
-
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=1, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=2, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7]
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=4, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7]
-    )
-
-    # To block ulna rotation before the key pressing.
-    for i in [0, 1, 2, 3, 4]:
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=i, weight=100000, index=[3, 7])
-
-    objective_functions.add(
-        ObjectiveFcn.Mayer.TRACK_MARKERS_VELOCITY,
-        target=vel_push_array2,
-        node=Node.ALL,
-        phase=1,
-        marker_index=4,
-        weight=10000,
-    )
-
-    # To keep the hand/index perpendicular of the key piano all long the attack.
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=0,
-        weight=1000,
-        quadratic=True,
-        target=pi_sur_2_phase_0,
-        segment="2proxph_2mcp_flexion",
-    )
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=1,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_1,
-        segment="2proxph_2mcp_flexion",
-    )
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=2,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_2,
-        segment="2proxph_2mcp_flexion",
-    )
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=3,
-        weight=1000,
-        quadratic=True,
-        target=pi_sur_2_phase_3,
-        segment="2proxph_2mcp_flexion",
-    )
-
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=4,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_4,
-        segment="2proxph_2mcp_flexion",
-    )
-
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=0,
-        weight=1000,
-        quadratic=True,
-        target=pi_sur_2_phase_0,
-        segment="secondmc",
-    )
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=1,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_1,
-        segment="secondmc",
-    )
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=2,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_2,
-        segment="secondmc",
-    )
-
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=3,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_3,
-        segment="secondmc",
-    )
-
-    objective_functions.add(
-        custom_func_track_principal_finger_pi_in_two_global_axis,
-        custom_type=ObjectiveFcn.Lagrange,
-        node=Node.ALL,
-        phase=4,
-        weight=100000,
-        quadratic=True,
-        target=pi_sur_2_phase_4,
-        segment="secondmc",
-    )
-
-    # To avoid the apparition of "noise" caused by the objective function just before.
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=0, weight=1000, index=[8, 9], derivative=True
-    )
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=3, weight=1000, index=[8, 9], derivative=True
-    )
-
-    objective_functions.add(
-        ObjectiveFcn.Lagrange.TRACK_CONTACT_FORCES,
-        target=Froce,
-        node=Node.ALL_SHOOTING,
-        contact_index=2,
-        phase=2,
-        weight=10000,
-    )
-
-    Mul_Node_Obj = MultinodeObjectiveList()
-    # To minimize the difference between 0 and 1
-    Mul_Node_Obj.add(
-        minimize_difference,
-        custom_type=ObjectiveFcn.Mayer,
-        weight=1000,
-        nodes_phase=(0, 1),
-        nodes=(Node.END, Node.START),
-        quadratic=True,
-    )
-    # # To minimize the difference between 0 and 1
-    Mul_Node_Obj.add(
-        minimize_difference,
-        custom_type=ObjectiveFcn.Mayer,
-        weight=1000,
-        nodes_phase=(1, 2),
-        nodes=(Node.END, Node.START),
-        quadratic=True,
-    )
-    # # To minimize the difference between 2 and 3
-    Mul_Node_Obj.add(
-        minimize_difference,
-        custom_type=ObjectiveFcn.Mayer,
-        weight=1000,
-        nodes_phase=(2, 3),
-        nodes=(Node.END, Node.START),
-        quadratic=True,
-    )
-
-    Mul_Node_Obj.add(
-        minimize_difference,
-        custom_type=ObjectiveFcn.Mayer,
-        weight=1000,
-        nodes_phase=(3, 4),
-        nodes=(Node.END, Node.START),
-        quadratic=True,
     )
 
     # Dynamics
@@ -332,29 +102,121 @@ def prepare_ocp(
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=3)
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=4)
 
+    # Average of N frames by phase ; Average of phases time ; both measured with the motion capture datas.
+    n_shooting = (30, 7, 9, 17, 18)
+    phase_time = (0.3, 0.044, 0.051, 0.17, 0.18)
+    tau_min, tau_max, tau_init = -200, 200, 0
+    # Velocity profile found thanks to the motion capture datas.
+
+
+    ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
+
+    # Objectives
+    # Minimize Torques generated into articulations
+    objective_functions = ObjectiveList()
+    for phase in [0, 1, 2, 3, 4]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=[0, 1, 2, 5, 3, 4, 6, 7]
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=10000, index=[8, 9]
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7]
+        )
+
+    for phase in [1, 2]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=[8, 9]
+        )
+
+
+    # To block ulna rotation before the key pressing.
+    for i in [0, 1, 2, 3, 4]:
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=i, weight=100000, index=[3, 7])
+
+
+
+    # To keep the hand/index perpendicular of the key piano all long the attack.
+    for phase in [0, 1, 2, 3, 4]:
+        objective_functions.add(
+            custom_func_track_principal_finger_pi_in_two_global_axis,
+            custom_type=ObjectiveFcn.Lagrange,
+            node=Node.ALL,
+            phase=phase,
+            weight=100000,
+            quadratic=True,
+            target=np.full((1, n_shooting[phase] + 1), pi / 2),
+            segment="secondmc",
+        )
+
+        objective_functions.add(
+            custom_func_track_principal_finger_pi_in_two_global_axis,
+            custom_type=ObjectiveFcn.Lagrange,
+            node=Node.ALL,
+            phase=phase,
+            weight=10000,
+            quadratic=True,
+            target=np.full((1, n_shooting[phase] + 1), pi / 2),
+            segment="2proxph_2mcp_flexion",
+        )
+
     # Constraints
     constraints = ConstraintList()
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        node=Node.ALL,
+        phase=0, node=Node.ALL,
         first_marker="finger_marker",
         second_marker="high_square",
-        phase=0,
+    )
+
+    vel_push_array2 = [
+        [ -0.114, -0.181, -0.270, -0.347, -0.291, -0.100,] #MB: remove first and last
+    ]
+
+    constraints.add(
+        ConstraintFcn.TRACK_MARKERS_VELOCITY,
+        phase=1, node=Node.INTERMEDIATES,
+        target=vel_push_array2,
+        marker_index=4,
+        min_bound=-0.01, max_bound=0.01,
+    )
+
+    # No finger's tip velocity at the end of phase 1
+    constraints.add(
+        ConstraintFcn.TRACK_MARKERS_VELOCITY,
+        phase=1, node=Node.END,
+        marker_index=4,
     )
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        node=Node.END,
+        phase=1, node=Node.END,
         first_marker="finger_marker",
         second_marker="low_square",
-        phase=1,
+    )
+
+    constraints.add(
+        ConstraintFcn.TRACK_CONTACT_FORCES,
+        phase=2, node=Node.ALL,
+        contact_index=0,
+        min_bound=-5, max_bound=5,
     )
     constraints.add(
-        ConstraintFcn.TRACK_CONTACT_FORCES, node=Node.ALL, contact_index=0, min_bound=-5, max_bound=5, phase=2
+        ConstraintFcn.TRACK_CONTACT_FORCES,
+        phase=2, node=Node.ALL,
+        contact_index=1,
+        min_bound=-5, max_bound=5,
     )
-    constraints.add(
-        ConstraintFcn.TRACK_CONTACT_FORCES, node=Node.ALL, contact_index=1, min_bound=-5, max_bound=5, phase=2
-    )
+
+    for node in range(n_shooting[2]):
+        constraints.add(
+            ConstraintFcn.TRACK_CONTACT_FORCES,
+            phase=2, node=node,
+            contact_index=2,
+            target=ForceProfile[node],
+            #min_bound=-0.1, max_bound=0.1,
+        )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -373,147 +235,74 @@ def prepare_ocp(
     )
 
     # To keep the index and the small finger above the bed key.
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker",
-        min_bound=0,
-        max_bound=10000,
-        phase=0,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker",
-        min_bound=0,
-        max_bound=10000,
-        phase=1,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker",
-        min_bound=0,
-        max_bound=10000,
-        phase=2,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker",
-        min_bound=0,
-        max_bound=10000,
-        phase=3,
-    )
-
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker",
-        min_bound=0,
-        max_bound=10000,
-        phase=4,
-    )
-
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker_5",
-        min_bound=0,
-        max_bound=10000,
-        phase=0,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker_5",
-        min_bound=0,
-        max_bound=10000,
-        phase=1,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker_5",
-        min_bound=0,
-        max_bound=10000,
-        phase=2,
-    )
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker_5",
-        min_bound=0,
-        max_bound=10000,
-        phase=3,
-    )
-
-    constraints.add(
-        custom_func_track_principal_finger_and_finger5_above_bed_key,
-        node=Node.ALL,
-        marker="finger_marker_5",
-        min_bound=0,
-        max_bound=10000,
-        phase=4,
-    )
-
     # To keep the small finger on the right of the principal finger.
-    constraints.add(
-        custom_func_track_finger_5_on_the_right_of_principal_finger,
-        node=Node.ALL,
-        min_bound=0.00001,
-        max_bound=10000,
-        phase=0,
-    )
-    constraints.add(
-        custom_func_track_finger_5_on_the_right_of_principal_finger,
-        node=Node.ALL,
-        min_bound=0.00001,
-        max_bound=10000,
-        phase=1,
-    )
-    constraints.add(
-        custom_func_track_finger_5_on_the_right_of_principal_finger,
-        node=Node.ALL,
-        min_bound=0.00001,
-        max_bound=10000,
-        phase=2,
-    )
-    constraints.add(
-        custom_func_track_finger_5_on_the_right_of_principal_finger,
-        node=Node.ALL,
-        min_bound=0.00001,
-        max_bound=10000,
-        phase=3,
-    )
+    for phase in [0, 1, 2, 3, 4]:
+        constraints.add(
+            custom_func_track_principal_finger_and_finger5_above_bed_key,
+            node=Node.ALL,
+            marker="finger_marker",
+            min_bound=0,
+            max_bound=np.inf,
+            phase=phase,
+        )
 
-    constraints.add(
-        custom_func_track_finger_5_on_the_right_of_principal_finger,
-        node=Node.ALL,
-        min_bound=0.00001,
-        max_bound=10000,
-        phase=4,
-    )
+        constraints.add(
+            custom_func_track_principal_finger_and_finger5_above_bed_key,
+            node=Node.ALL,
+            marker="finger_marker_5",
+            min_bound=0,
+            max_bound=np.inf,
+            phase=phase,
+        )
+
+        constraints.add(
+            custom_func_track_finger_5_on_the_right_of_principal_finger,
+            node=Node.ALL,
+            min_bound=0.00001,
+            max_bound=np.inf,
+            phase=phase,
+        )
+
+    # To keep the hand/index perpendicular of the key piano all long the attack.
+    for phase in [0, 1, 2, 3, 4]:
+        constraints.add(
+            custom_func_track_principal_finger_pi_in_two_global_axis,
+            phase=phase, node=Node.ALL,
+            target=np.full((1, n_shooting[phase] + 1), pi / 2),
+            min_bound=-np.pi/24, max_bound=np.pi/24,
+            segment="secondmc",
+            quadratic=False,
+        )
+
+        constraints.add(
+            custom_func_track_principal_finger_pi_in_two_global_axis,
+            phase=phase, node=Node.ALL,
+            target=np.full((1, n_shooting[phase] + 1), pi / 2),
+            min_bound=-np.pi / 24, max_bound=np.pi / 24,
+            segment="2proxph_2mcp_flexion",
+            quadratic=False,
+        )
+
 
 
     phase_transition = PhaseTransitionList()
     phase_transition.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=1)
 
+    # States: bounds and Initial guess
+    x_init = InitialGuessList()
     x_bounds = BoundsList()
-    x_bounds.add("q", bounds=biorbd_model[0].bounds_from_ranges("q"), phase=0)
-    x_bounds.add("qdot", bounds=biorbd_model[0].bounds_from_ranges("qdot"), phase=0)
+    for phase in [0, 1, 2, 3, 4]:
+        x_bounds.add("q", bounds=biorbd_model[phase].bounds_from_ranges("q"), phase=phase)
+        x_bounds.add("qdot", bounds=biorbd_model[phase].bounds_from_ranges("qdot"), phase=phase)
 
-    x_bounds.add("q", bounds=biorbd_model[1].bounds_from_ranges("q"), phase=1)
-    x_bounds.add("qdot", bounds=biorbd_model[1].bounds_from_ranges("qdot"), phase=1)
+        x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
+        x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-    x_bounds.add("q", bounds=biorbd_model[2].bounds_from_ranges("q"), phase=2)
-    x_bounds.add("qdot", bounds=biorbd_model[2].bounds_from_ranges("qdot"), phase=2)
-
-    x_bounds.add("q", bounds=biorbd_model[3].bounds_from_ranges("q"), phase=3)
-    x_bounds.add("qdot", bounds=biorbd_model[3].bounds_from_ranges("qdot"), phase=3)
-
-    x_bounds.add("q", bounds=biorbd_model[4].bounds_from_ranges("q"), phase=4)
-    x_bounds.add("qdot", bounds=biorbd_model[4].bounds_from_ranges("qdot"), phase=4)
+        x_init[phase]["q"][4, 0] = 0.08
+        x_init[phase]["q"][5, 0] = 0.67
+        x_init[phase]["q"][6, 0] = 1.11
+        x_init[phase]["q"][7, 0] = 1.48
+        x_init[phase]["q"][9, 0] = 0.17
 
     x_bounds[0]["q"][[0], 0] = -0.1
     x_bounds[0]["q"][[2], 0] = 0.1
@@ -521,51 +310,18 @@ def prepare_ocp(
     x_bounds[4]["q"][[0], 2] = -0.1
     x_bounds[4]["q"][[2], 2] = 0.1
 
-    # Initial guess
-    x_init = InitialGuessList()
 
-    x_init.add("q", [0] * biorbd_model[0].nb_q, phase=0)
-    x_init.add("qdot", [0] * biorbd_model[0].nb_q, phase=0)
-
-    x_init.add("q", [0] * biorbd_model[0].nb_q, phase=1)
-    x_init.add("qdot", [0] * biorbd_model[0].nb_q, phase=1)
-
-    x_init.add("q", [0] * biorbd_model[0].nb_q, phase=2)
-    x_init.add("qdot", [0] * biorbd_model[0].nb_q, phase=2)
-
-    x_init.add("q", [0] * biorbd_model[0].nb_q, phase=3)
-    x_init.add("qdot", [0] * biorbd_model[0].nb_q, phase=3)
-
-    x_init.add("q", [0] * biorbd_model[0].nb_q, phase=4)
-    x_init.add("qdot", [0] * biorbd_model[0].nb_q, phase=4)
-
-    for i in range(5):
-        x_init[i]["q"][4, 0] = 0.08
-        x_init[i]["q"][5, 0] = 0.67
-        x_init[i]["q"][6, 0] = 1.11
-        x_init[i]["q"][7, 0] = 1.48
-        x_init[i]["q"][9, 0] = 0.17
-
-    # Define control path constraint
+    # Define control path constraint and initial guess
     u_bounds = BoundsList()
-
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau,
-                 phase=0)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau,
-                 phase=1)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau,
-                 phase=2)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau,
-                 phase=3)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau,
-                 phase=4)
-
     u_init = InitialGuessList()
-    u_init.add("tau", [tau_init] * biorbd_model[0].nb_tau, phase=0)
-    u_init.add("tau", [tau_init] * biorbd_model[1].nb_tau, phase=1)
-    u_init.add("tau", [tau_init] * biorbd_model[2].nb_tau, phase=2)
-    u_init.add("tau", [tau_init] * biorbd_model[3].nb_tau, phase=3)
-    u_init.add("tau", [tau_init] * biorbd_model[4].nb_tau, phase=4)
+    for phase in [0, 1, 2, 3, 4]:
+        u_bounds.add("tau",
+                     min_bound=[tau_min] * biorbd_model[phase].nb_tau,
+                     max_bound=[tau_max] * biorbd_model[phase].nb_tau,
+                     phase=phase)
+        u_init.add("tau", [tau_init] * biorbd_model[phase].nb_tau, phase=phase)
+
+
 
     return OptimalControlProgram(
         biorbd_model,
@@ -587,14 +343,14 @@ def main():
     """
     Defines a multiphase ocp and animate the results
     """
-
+    polynomial_degree = 4
     ocp = prepare_ocp()
     ocp.add_plot_penalty(CostType.ALL)
 
     # # --- Solve the program --- # #
 
     solv = Solver.IPOPT(show_online_optim=False)
-    solv.set_maximum_iterations(1000000)
+    solv.set_maximum_iterations(1000)
     solv.set_linear_solver("ma57")
     tic = time.time()
     sol = ocp.solve(solv)
@@ -603,16 +359,20 @@ def main():
     q_sym = MX.sym('q_sym', 10, 1)
     qdot_sym = MX.sym('qdot_sym', 10, 1)
     tau_sym = MX.sym('tau_sym', 10, 1)
-    Calculaing_Force = Function("Temp", [q_sym, qdot_sym, tau_sym], [
-        ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
+
+    phase = 2
+    Contact_Force = Function("Contact_Force", [q_sym, qdot_sym, tau_sym], [
+        ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
 
     rows = 9
     cols = 3
     F = [[0] * cols for _ in range(rows)]
 
     for i in range(0, 9):
-        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i],
-                                sol.controls[2]['tau'][:, i])
+        idx = i * polynomial_degree
+        F[i] = Contact_Force(sol.states[phase]["q"][:, idx],
+                             sol.states[phase]["qdot"][:, idx],
+                             sol.controls[phase]['tau'][:, i])
 
     F_array = np.array(F)
 
