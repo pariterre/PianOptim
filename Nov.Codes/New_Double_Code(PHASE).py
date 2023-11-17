@@ -11,23 +11,21 @@ def degrees(radians):
 
 
 # Load data_1
-with open(
-    "/home/alpha/Desktop/NEW OCT. 16/Felipe and Optimal Control Group - Pressed Touch 23 October./Results For Struck Touch_20/NewFORCE_NOV.13_1.pckl",
-    "rb",
-) as file:
+with open("/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_with_Thorax.pckl",
+          "rb") as file:
     data_1 = pickle.load(file)
 
-with open("/home/alpha/Desktop/Nov. 14/Struck_with_Thorax.pckl", "rb") as file:
+with open("/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_without_Thorax.pckl",
+          "rb") as file:
     data_2 = pickle.load(file)
-
 
 # Process specific points for data_1 and data_2
 specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(data_1["phase_time"]))]
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "Struck_With_Thorax/Initial"
-label_2 = "Struck_With_Thorax/4cm Closer"
+label_1 = "with"
+label_2 = "without"
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
 array_q_s_1 = [data_1["states_no_intermediate"][i]["q"] for i in range(len(data_1["states_no_intermediate"]))]
@@ -47,7 +45,6 @@ array_tau_s_2 = [data_2["controls"][i]["tau"] for i in range(len(data_2["control
 # Replace NaN values in tau arrays for data_2
 for i in range(len(array_tau_s_2) - 1):
     array_tau_s_2[i][:, -1] = array_tau_s_2[i + 1][:, 0]
-
 array_tau_s_2[-1][:, -1] = array_tau_s_2[-1][:, -2]
 
 # Concatenate arrays for q, qdot, tau for both data sets
@@ -110,12 +107,11 @@ Name = [
 #
 # Handle NaN values in tau arrays
 
-for i in range(10):
+for i in range(-7, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q
     axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-
     axs[0].plot(
         concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2
     )
@@ -135,11 +131,12 @@ for i in range(10):
     axs[1].legend()
 
     # Plot for tau
-    axs[2].plot(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
+    axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
+    axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", label=label_2)
+    axs[2].step(concatenated_array_time_s_2,
+                concatenated_array_tau_s_1[i, :]-concatenated_array_tau_s_2[i, :],
+                color="black", linestyle="--", label="diff")
 
-    axs[2].plot(
-        concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2
-    )
 
     axs[2].set_ylabel(r"$\tau$ (N/m)")
     axs[2].set_xlabel("Time (sec)")
@@ -154,10 +151,10 @@ for i in range(10):
 
         # Add vertical lines for specific points in data_1
         for point in specific_points_s_1:
-            ax.axvline(x=point, color="r", linestyle="--")
+            ax.axvline(x=point, color="k", linestyle=":")
 
         for point in specific_points_s_2:
-            ax.axvline(x=point, color="b", linestyle="--")
+            ax.axvline(x=point, color="k", linestyle=":")
 
     plt.tight_layout()
 
