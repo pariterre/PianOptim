@@ -211,8 +211,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="low_square",
     )
 
-
-
     ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
@@ -233,7 +231,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
         phase=3, node=Node.END,
@@ -247,7 +244,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         first_marker="finger_marker",
         second_marker="high_square",
     )
-
 
     for phase in all_phases:
         # To keep the index and the small finger above the bed key.
@@ -361,14 +357,14 @@ def main():
     """
     print(os.getcwd())
     polynomial_degree = 4
-    allDOF = True
+    allDOF = False
     pressed = True #False means Struck
 
     if allDOF:
-        saveName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_with_Thorax.pckl"
+        saveName = "/home/alpha/Desktop/Pressed_with_Thorax.pckl"
         nq = 10
     else:
-        saveName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_without_Thorax.pckl"
+        saveName = "/home/alpha/Desktop/Pressed_without_Thorax.pckl"
         nq = 7
 
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
