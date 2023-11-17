@@ -3,10 +3,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-with open("/home/alpha/Desktop/Nov. 14/Pressed_with_Thorax_AllObjRemoved.pckl", "rb") as file:
+with open("/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_with_Thorax.pckl", "rb") as file:
     new_dict = pickle.load(file)
 
-biorbd_model_path: str = "/home/alpha/Desktop/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
+biorbd_model_path: str = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
 
 # # --- Animate --- # #
 
@@ -24,7 +24,13 @@ b = bioviz.Viz(
 )
 
 all_q = np.hstack(
-    (new_dict["states"][0]["q"], new_dict["states"][1]["q"], new_dict["states"][2]["q"], new_dict["states"][3]["q"], new_dict["states"][4]["q"])
+    (
+        new_dict["states"][0]["q"],
+        new_dict["states"][1]["q"],
+        new_dict["states"][2]["q"],
+        new_dict["states"][3]["q"],
+        new_dict["states"][4]["q"],
+    )
 )
 
 b.load_movement(all_q)

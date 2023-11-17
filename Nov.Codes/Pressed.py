@@ -7,6 +7,7 @@ import time
 import numpy as np
 import biorbd_casadi as biorbd
 import pickle
+import os
 
 from bioptim import (
     BiorbdModel,
@@ -29,13 +30,39 @@ from bioptim import (
     MultinodeObjectiveList,
     Axis,
 )
+
 #
 # def minimize_difference(all_pn: PenaltyNode):
 #     return all_pn[0].nlp.controls.cx_end - all_pn[1].nlp.controls.cx
 #
+
+
+# Joint indices in the biomechanical model:
+# 0| .Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
+# 1| . Thorax, Left (+) and Right (-) Rotation
+# 2| . Thorax, Flexion (-) and Extension (+)
+# 3|0. Right Shoulder, Abduction (-) and Adduction (+)
+# 4|1. Right Shoulder, Internal (+) and External (-) Rotation
+# 5|2. Right Shoulder, Flexion (+) and Extension (-)
+# 6|3. Elbow, Flexion (+) and Extension (-)
+# 7|4. Elbow, Pronation (+) and Supination (-)
+# 8|5. Wrist, Flexion (-) and Extension (+)
+# 9|6. MCP, Flexion (+) and Extension (-)
+
+# Note: The signs (+/-) indicate the direction of the movement for each joint.
+
+# Description of movement phases:
+# Phase 0: Preparation - Getting the fingers in position.
+# Phase 1: Key Descend - The downward motion of the fingers pressing the keys.
+# Phase 2: Key Bed - The phase where the keys are fully pressed and meet the bottom.
+# Phase 3: Key Release (Upward) - Releasing the keys and moving the hand upward.
+# Phase 4: Return to Neutral (Downward) - Bringing the fingers back to a neutral position, ready for the next action.
+
+
 def minimize_difference(controllers: list[PenaltyController, PenaltyController]):
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
+
 
 def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: PenaltyController) -> MX:
     finger_marker_idx = biorbd.marker_index(controller.model.model, "finger_marker")
@@ -50,6 +77,7 @@ def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: Pena
 
     return markers_diff_key2
 
+
 def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: PenaltyController, marker: str) -> MX:
     biorbd_model = controller.model
     finger_marker_idx = biorbd.marker_index(biorbd_model.model, marker)
@@ -59,6 +87,7 @@ def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: Pen
     markers_diff_key3 = finger_marker[2] - (0.07808863830566405 - 0.02)
 
     return markers_diff_key3
+
 
 def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
     rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
@@ -80,10 +109,17 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 
     return output_casadi
 
-def prepare_ocp(
-    biorbd_model_path: str = "../../../bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
-    ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
-) -> OptimalControlProgram:
+
+def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
+    if allDOF:
+        biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
+        dof_wrist_finger = [8, 9]
+        all_dof_but_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7]
+
+    else:
+        biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
+        dof_wrist_finger = [5, 6]
+        all_dof_but_wrist_finger = [0, 1, 2, 4]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -107,58 +143,58 @@ def prepare_ocp(
     n_shooting = (30, 7, 9, 17, 18)
     phase_time = (0.3, 0.044, 0.051, 0.17, 0.18)
     tau_min, tau_max, tau_init = -200, 200, 0
-    # Velocity profile found thanks to the motion capture datas.
-
 
     # Objectives
     # Minimize Torques generated into articulations
     objective_functions = ObjectiveList()
     for phase in all_phases:
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=[0, 1, 2, 5, 3, 4, 6, 7]
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_but_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=[8, 9]
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=[0, 1, 2, 3, 4, 5, 6, 7]
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_but_wrist_finger
         )
 
-    for phase in [1, 2]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=[8, 9]
-        )
-
-
-
+    # for phase in [1, 2]:
+    #     objective_functions.add(
+    #         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger
+    #     )
 
     # Constraints
     constraints = ConstraintList()
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=0, node=Node.ALL,
+        phase=0,
+        node=Node.ALL,
         first_marker="finger_marker",
         second_marker="high_square",
     )
 
+    # Velocity profile found thanks to the motion capture datas.
     vel_push_array2 = [
-        [ -0.114, -0.181, -0.270, -0.347, -0.291, -0.100,] #MB: remove first and last
+        [-0.114, -0.181, -0.270, -0.347, -0.291, -0.100,]  # MB: remove first and last
     ]
 
     # No finger's tip velocity at the start of phase 1
     constraints.add(
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1, node=Node.START,
+        phase=1,
+        node=Node.START,
         marker_index=4,
     )
 
     constraints.add(
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1, node=Node.INTERMEDIATES,
+        phase=1,
+        node=Node.INTERMEDIATES,
         target=vel_push_array2,
         marker_index=4,
-        min_bound=-0.01, max_bound=0.01,
+        min_bound=-0.01,
+        max_bound=0.01,
     )
 
     # No finger's tip velocity at the end of phase 1
@@ -176,34 +212,27 @@ def prepare_ocp(
     )
 
 
-    #todo: Fx,y = 0 at last node
-    constraints.add(
-        ConstraintFcn.TRACK_CONTACT_FORCES,
-        phase=2, node=Node.ALL,
-        contact_index=0,
-        min_bound=-5, max_bound=5,
-        quadratic=False,
-    )
-    constraints.add(
-        ConstraintFcn.TRACK_CONTACT_FORCES,
-        phase=2, node=Node.ALL,
-        contact_index=1,
-        min_bound=-5, max_bound=5,
-        quadratic=False,
-    )
-
-
 
     ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
     for node in range(n_shooting[2]):
+        for idx in [0, 1]:
+            constraints.add(
+                ConstraintFcn.TRACK_CONTACT_FORCES,
+                phase=2, node=node,
+                contact_index=idx,
+                min_bound=-ForceProfile[node] / 3, max_bound=ForceProfile[node] / 3,
+                quadratic=False,
+            )
+
         constraints.add(
             ConstraintFcn.TRACK_CONTACT_FORCES,
             phase=2, node=node,
             contact_index=2,
             target=ForceProfile[node],
             quadratic=False,
-            #min_bound=-0.1, max_bound=0.1,
+            # min_bound=-0.1, max_bound=0.1,
         )
+
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -219,55 +248,55 @@ def prepare_ocp(
         second_marker="high_square",
     )
 
-    # To keep the index and the small finger above the bed key.
-    # To keep the small finger on the right of the principal finger.
-    # To keep the hand/index perpendicular of the key piano all long the attack.
-    # To block ulna rotation before the key pressing.
 
     for phase in all_phases:
+        # To keep the index and the small finger above the bed key.
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
             phase=phase, node=Node.ALL,
             marker="finger_marker",
-            min_bound=0, max_bound=np.inf,
+            min_bound=0,
+            max_bound=np.inf,
         )
-
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
             phase=phase, node=Node.ALL,
             marker="finger_marker_5",
-            min_bound=0, max_bound=np.inf,
+            min_bound=0,
+            max_bound=np.inf,
         )
-
+        # To keep the small finger on the right of the principal finger.
         constraints.add(
             custom_func_track_finger_5_on_the_right_of_principal_finger,
             phase=phase, node=Node.ALL,
-            min_bound=0.00001, max_bound=np.inf,
+            min_bound=0.00001,
+            max_bound=np.inf,
         )
-
+        # To keep the hand/index perpendicular of the key piano all long the attack.
         constraints.add(
             custom_func_track_principal_finger_pi_in_two_global_axis,
             phase=phase, node=Node.ALL,
             segment="secondmc",
             target=np.full((1, n_shooting[phase] + 1), pi / 2),
-            min_bound=-np.pi/24, max_bound=np.pi/24,
+            min_bound=-np.pi / 24,
+            max_bound=np.pi / 24,
             quadratic=False,
         )
-
         constraints.add(
             custom_func_track_principal_finger_pi_in_two_global_axis,
             phase=phase, node=Node.ALL,
             segment="2proxph_2mcp_flexion",
             target=np.full((1, n_shooting[phase] + 1), pi / 2),
-            min_bound=-np.pi / 24, max_bound=np.pi / 24,
-
+            min_bound=-np.pi / 24,
+            max_bound=np.pi / 24,
             quadratic=False,
         )
-
+        # To block ulna rotation before the key pressing.
         constraints.add(
             ConstraintFcn.TRACK_STATE,
             phase=phase, node=Node.ALL,
-            key="qdot", index=[3, 7],
+            key="qdot",
+            index=all_dof_but_wrist_finger[-1],  # prosupination
             min_bound=-1, max_bound=1,
             quadratic=False,
         )
@@ -278,37 +307,37 @@ def prepare_ocp(
     # States: bounds and Initial guess
     x_init = InitialGuessList()
     x_bounds = BoundsList()
-    for phase in [0, 1, 2, 3, 4]:
+    for phase in all_phases:
         x_bounds.add("q", bounds=biorbd_model[phase].bounds_from_ranges("q"), phase=phase)
         x_bounds.add("qdot", bounds=biorbd_model[phase].bounds_from_ranges("qdot"), phase=phase)
 
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-        x_init[phase]["q"][4, 0] = 0.08
-        x_init[phase]["q"][5, 0] = 0.67
-        x_init[phase]["q"][6, 0] = 1.11
-        x_init[phase]["q"][7, 0] = 1.48
-        x_init[phase]["q"][9, 0] = 0.17
+        # x_init[phase]["q"][4, 0] = 0.08 #todo put names
+        # x_init[phase]["q"][5, 0] = 0.67
+        # x_init[phase]["q"][6, 0] = 1.11
+        # x_init[phase]["q"][7, 0] = 1.48
+        # x_init[phase]["q"][9, 0] = 0.17
 
-    x_bounds[0]["q"][[0], 0] = -0.1
-    x_bounds[0]["q"][[2], 0] = 0.1
+    if allDOF:
+        x_bounds[0]["q"][[0], 0] = -0.1  # todo put names
+        x_bounds[0]["q"][[2], 0] = 0.1
 
-    x_bounds[4]["q"][[0], 2] = -0.1
-    x_bounds[4]["q"][[2], 2] = 0.1
-
+        x_bounds[4]["q"][[0], 2] = -0.1
+        x_bounds[4]["q"][[2], 2] = 0.1
 
     # Define control path constraint and initial guess
     u_bounds = BoundsList()
     u_init = InitialGuessList()
-    for phase in [0, 1, 2, 3, 4]:
-        u_bounds.add("tau",
-                     min_bound=[tau_min] * biorbd_model[phase].nb_tau,
-                     max_bound=[tau_max] * biorbd_model[phase].nb_tau,
-                     phase=phase)
+    for phase in all_phases:
+        u_bounds.add(
+            "tau",
+            min_bound=[tau_min] * biorbd_model[phase].nb_tau,
+            max_bound=[tau_max] * biorbd_model[phase].nb_tau,
+            phase=phase,
+        )
         u_init.add("tau", [tau_init] * biorbd_model[phase].nb_tau, phase=phase)
-
-
 
     return OptimalControlProgram(
         biorbd_model,
@@ -330,26 +359,40 @@ def main():
     """
     Defines a multiphase ocp and animate the results
     """
+    print(os.getcwd())
     polynomial_degree = 4
-    ocp = prepare_ocp()
+    allDOF = True
+    pressed = True #False means Struck
+
+    if allDOF:
+        saveName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_with_Thorax.pckl"
+        nq = 10
+    else:
+        saveName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_without_Thorax.pckl"
+        nq = 7
+
+    ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
+
     ocp.add_plot_penalty(CostType.ALL)
 
     # # --- Solve the program --- # #
-
     solv = Solver.IPOPT(show_online_optim=False)
     solv.set_maximum_iterations(1000)
     solv.set_linear_solver("ma57")
-    tic = time.time()
+
     sol = ocp.solve(solv)
 
     # # --- Download datas on a .pckl file --- #
-    q_sym = MX.sym('q_sym', 10, 1)
-    qdot_sym = MX.sym('qdot_sym', 10, 1)
-    tau_sym = MX.sym('tau_sym', 10, 1)
+    q_sym = MX.sym("q_sym", nq, 1)
+    qdot_sym = MX.sym("qdot_sym", nq, 1)
+    tau_sym = MX.sym("tau_sym", nq, 1)
 
     phase = 2
-    Contact_Force = Function("Contact_Force", [q_sym, qdot_sym, tau_sym], [
-        ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
+    Contact_Force = Function(
+        "Contact_Force",
+        [q_sym, qdot_sym, tau_sym],
+        [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    )
 
     rows = 9
     cols = 3
@@ -357,11 +400,11 @@ def main():
 
     for i in range(0, 9):
         idx = i * (polynomial_degree + 1)
-        F[i] = Contact_Force(sol.states[phase]["q"][:, idx],
-                             sol.states[phase]["qdot"][:, idx],
-                             sol.controls[phase]['tau'][:, i])
-
+        F[i] = Contact_Force(
+            sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+        )
     F_array = np.array(F)
+
 
     data = dict(
         states=sol.states,
@@ -376,12 +419,9 @@ def main():
         phase_time=sol.phase_time,
         Time=sol.time,
         Force_Values=F_array,
-
     )
 
-    with open(
-            "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/Pressed_with_Thorax.pckl",
-            "wb") as file:
+    with open(saveName, "wb") as file:
         pickle.dump(data, file)
     #
     # print("Tesults saved")

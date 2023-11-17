@@ -1,30 +1,30 @@
 # Comment on the axes used in the biomechanical model
-    # Note: This comment explains that the axes used in this model are different from
-    # the standard biomechanics axes. Specifically, it mentions how the axes are redefined:
-    # Y becomes X, Z becomes Y, and X becomes Z.
+# Note: This comment explains that the axes used in this model are different from
+# the standard biomechanics axes. Specifically, it mentions how the axes are redefined:
+# Y becomes X, Z becomes Y, and X becomes Z.
 
 # A brief of the Phases and Joint indices
 
 # Joint indices in the biomechanical model:
-    # 0. Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
-    # 1. Thorax, Left (+) and Right (-) Rotation
-    # 2. Thorax, Flexion (-) and Extension (+)
-    # 3. Right Shoulder, Abduction (-) and Adduction (+)
-    # 4. Right Shoulder, Internal (+) and External (-) Rotation
-    # 5. Right Shoulder, Flexion (+) and Extension (-)
-    # 6. Elbow, Flexion (+) and Extension (-)
-    # 7. Elbow, Pronation (+) and Supination (-)
-    # 8. Wrist, Flexion (-) and Extension (+)
-    # 9. MCP, Flexion (+) and Extension (-)
+# 0. Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
+# 1. Thorax, Left (+) and Right (-) Rotation
+# 2. Thorax, Flexion (-) and Extension (+)
+# 3. Right Shoulder, Abduction (-) and Adduction (+)
+# 4. Right Shoulder, Internal (+) and External (-) Rotation
+# 5. Right Shoulder, Flexion (+) and Extension (-)
+# 6. Elbow, Flexion (+) and Extension (-)
+# 7. Elbow, Pronation (+) and Supination (-)
+# 8. Wrist, Flexion (-) and Extension (+)
+# 9. MCP, Flexion (+) and Extension (-)
 
-    # Note: The signs (+/-) indicate the direction of the movement for each joint.
+# Note: The signs (+/-) indicate the direction of the movement for each joint.
 
 # Description of movement phases:
-    # Phase 0: Preparation - Getting the fingers in position.
-    # Phase 1: Key Descend - The downward motion of the fingers pressing the keys.
-    # Phase 2: Key Bed - The phase where the keys are fully pressed and meet the bottom.
-    # Phase 3: Key Release (Upward) - Releasing the keys and moving the hand upward.
-    # Phase 4: Return to Neutral (Downward) - Bringing the fingers back to a neutral position, ready for the next action.
+# Phase 0: Preparation - Getting the fingers in position.
+# Phase 1: Key Descend - The downward motion of the fingers pressing the keys.
+# Phase 2: Key Bed - The phase where the keys are fully pressed and meet the bottom.
+# Phase 3: Key Release (Upward) - Releasing the keys and moving the hand upward.
+# Phase 4: Return to Neutral (Downward) - Bringing the fingers back to a neutral position, ready for the next action.
 
 # Importing necessary libraries and functions
 from casadi import MX, acos, dot, pi, Function  # CasADi is a symbolic framework for numeric optimization
@@ -56,10 +56,12 @@ from bioptim import (
     Axis,
 )
 
+
 # Function to minimize the difference between control parameters of two following phases in an optimization problem.
 def minimize_difference(controllers: list[PenaltyController, PenaltyController]):
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
+
 
 #  Custom function to track the relative position of the fifth finger to the principal finger
 # Description:This function computes the Y-axis difference between two finger markers.
@@ -80,6 +82,7 @@ def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: Pena
 
     return markers_diff_key2
 
+
 # Function to track the vertical distance of a specified finger marker from a piano key bed.
 def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: PenaltyController, marker: str) -> MX:
     biorbd_model = controller.model
@@ -91,13 +94,14 @@ def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: Pen
 
     return markers_diff_key3
 
+
 # Function to calculate the angle between a local axis of a segment and a global axis.
 # It is useful for understanding the orientation of a segment relative to a global reference frame.
 def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
     rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
     q = controller.states["q"].mx
     # global JCS gives the local matrix according to the global matrix
-    principal_finger_axis= controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
     y = MX.zeros(4)
     y[:4] = np.array([0, 1, 0, 1])
     # @ x : pour avoir l'orientation du vecteur x du jcs local exprimé dans le global
@@ -113,12 +117,12 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 
     return output_casadi
 
-  # Prepare an Optimal Control Program (OCP) for a biomechanical model.
+
+# Prepare an Optimal Control Program (OCP) for a biomechanical model.
 def prepare_ocp(
     biorbd_model_path: str = "/home/alpha/Desktop/PianOptim/2_Mathilde_2022/2__final_models_piano/1___final_model___squeletum_hand_finger_1_key_4_phases_/bioMod/Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod",
     ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
 ) -> OptimalControlProgram:
-
     # Loading the biomechanical model for each phase of the movement
     biorbd_model = (
         BiorbdModel(biorbd_model_path),
@@ -126,7 +130,6 @@ def prepare_ocp(
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
-
     )
 
     # Defining the number of shooting points and time for each phase
@@ -547,7 +550,6 @@ def prepare_ocp(
         phase=4,
     )
 
-
     phase_transition = PhaseTransitionList()
     phase_transition.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=1)
 
@@ -568,7 +570,7 @@ def prepare_ocp(
     x_bounds.add("q", bounds=biorbd_model[4].bounds_from_ranges("q"), phase=4)
     x_bounds.add("qdot", bounds=biorbd_model[4].bounds_from_ranges("qdot"), phase=4)
 
-    #Initial Posture for Each Phase of the Movement
+    # Initial Posture for Each Phase of the Movement
     # This section defines the starting, intermediate, and final postures for the biomechanical model in each phase of the movement.
     x_bounds[0]["q"][[0], 0] = -0.1
     x_bounds[0]["q"][[2], 0] = 0.1
@@ -605,16 +607,21 @@ def prepare_ocp(
     # Defining bounds for control variables for each phase
     u_bounds = BoundsList()
 
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau,
-                 phase=0)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau,
-                 phase=1)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau,
-                 phase=2)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau,
-                 phase=3)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau,
-                 phase=4)
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau, phase=0
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau, phase=1
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau, phase=2
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau, phase=3
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau, phase=4
+    )
 
     # Initializing the torques to tau_init
 
@@ -658,13 +665,16 @@ def main():
     sol = ocp.solve(solv)
 
     # Defining symbolic variables for joint angles, rates of change, and torques
-    q_sym = MX.sym('q_sym', 10, 1)
-    qdot_sym = MX.sym('qdot_sym', 10, 1)
-    tau_sym = MX.sym('tau_sym', 10, 1)
+    q_sym = MX.sym("q_sym", 10, 1)
+    qdot_sym = MX.sym("qdot_sym", 10, 1)
+    tau_sym = MX.sym("tau_sym", 10, 1)
 
     # Calculating contact forces using forward dynamics
-    Calculaing_Force = Function("Temp", [q_sym, qdot_sym, tau_sym], [
-        ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
+    Calculaing_Force = Function(
+        "Temp",
+        [q_sym, qdot_sym, tau_sym],
+        [ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    )
 
     # A matrix to store force values
     rows = 9
@@ -673,8 +683,7 @@ def main():
     F = [[0] * cols for _ in range(rows)]
 
     for i in range(0, 9):
-        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i],
-                                sol.controls[2]['tau'][:, i])
+        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i], sol.controls[2]["tau"][:, i])
 
     F_array = np.array(F)
 
@@ -692,32 +701,30 @@ def main():
         phase_time=sol.phase_time,
         Time=sol.time,
         Force_Values=F_array,
-
     )
 
     # Save the data to a .pckl file
-    with open(
-            "/home/alpha/Desktop/Nov. 14/Pressed_with_Thorax_AllObjRemoved.pckl","wb") as file:
+    with open("/home/alpha/Desktop/Nov. 14/Pressed_with_Thorax_AllObjRemoved.pckl", "wb") as file:
         pickle.dump(data, file)
 
 
 #  Important Note on Bioptim Version 3.1.0 Compatibility
-    # In Bioptim version 3.1.0, some of the following features or functions may not work as expected:
-    # - sol.print_cost() may not function properly to display the cost details of the solution.
-    # - ocp.print(to_console=False, to_graph=False) may not provide the expected detailed information
-    # - sol.graphs(show_bounds=True) may not be available for generating and displaying online graphs related to the solution.
-    # - sol.animate() may not be functional for visualizing the movement in an animation.
+# In Bioptim version 3.1.0, some of the following features or functions may not work as expected:
+# - sol.print_cost() may not function properly to display the cost details of the solution.
+# - ocp.print(to_console=False, to_graph=False) may not provide the expected detailed information
+# - sol.graphs(show_bounds=True) may not be available for generating and displaying online graphs related to the solution.
+# - sol.animate() may not be functional for visualizing the movement in an animation.
 
 
 # Displaying information about the optimization results
 
-    # print("Tesults saved")
-    # print("Temps de resolution : ", time.time() - tic, "s")
-    #
-    # sol.print_cost()
-    # ocp.print(to_console=False, to_graph=False)
-    # # sol.graphs(show_bounds=True)
-    # sol.animate(show_floor=False, show_global_center_of_mass=False, show_segments_center_of_mass=False, show_global_ref_frame=True, show_local_ref_frame=False, show_markers=False, n_frames=250,)
+# print("Tesults saved")
+# print("Temps de resolution : ", time.time() - tic, "s")
+#
+# sol.print_cost()
+# ocp.print(to_console=False, to_graph=False)
+# # sol.graphs(show_bounds=True)
+# sol.animate(show_floor=False, show_global_center_of_mass=False, show_segments_center_of_mass=False, show_global_ref_frame=True, show_local_ref_frame=False, show_markers=False, n_frames=250,)
 
 
 if __name__ == "__main__":

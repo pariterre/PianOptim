@@ -9,9 +9,14 @@ endsegment
 
 segment pelvis
     parent ground
-    RT pi/2 0 0 xyz 0.04 0 0
+    RTinMatrix	1
+	RT
+		1	0	0	0
+		0	0	-1	0
+		0	1	0	0
+		0	0	0	1
 	// translations	xyz
-	 rotations	z
+	//rotations	z
         rangesQ //-10   10
                 //-5    5
                 //-0.5  1.5
@@ -37,7 +42,7 @@ segment pelvis_r
     parent pelvis
      // translations xz
      // rotations zy
-        RT 0 0 0 xyz 0.13 -0.07 0
+        RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
 endsegment
 
@@ -45,15 +50,15 @@ segment pelvis_l
     parent pelvis
      // translations xz
      //rotations zy
-       RT 0 0 0 xyz 0.13 -0.07 0
+       RT 0 0 0 xyz 0.17 -0.07 0
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
 endsegment
 
 segment thorax
     parent pelvis
      // translations xz
-    rotations yz
-    RT 0 0 0 xyz 0 0.13 0
+    //rotations yz
+    RT 0 0 0 xyz 0.04 0.13 0
     ranges
         //-0.1 0.1
        -0.1 0.1
@@ -1684,3 +1689,5 @@ segment distance_thorax_side_LA
     mesh 0.5056114196777344  -0.16104042053222656 0.07808863830566405
 endsegment
 */
+
+

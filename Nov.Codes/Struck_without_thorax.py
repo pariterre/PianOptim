@@ -28,12 +28,13 @@ from bioptim import (
     Solver,
     MultinodeObjectiveList,
     Axis,
-
 )
+
 
 def minimize_difference(controllers: list[PenaltyController, PenaltyController]):
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
+
 
 def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: PenaltyController) -> MX:
     finger_marker_idx = biorbd.marker_index(controller.model.model, "finger_marker")
@@ -48,6 +49,7 @@ def custom_func_track_finger_5_on_the_right_of_principal_finger(controller: Pena
 
     return markers_diff_key2
 
+
 def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: PenaltyController, marker_name: str) -> MX:
     biorbd_model = controller.model
     finger_marker_idx = biorbd.marker_index(biorbd_model.model, marker_name)
@@ -58,11 +60,12 @@ def custom_func_track_principal_finger_and_finger5_above_bed_key(controller: Pen
 
     return markers_diff_key3
 
+
 def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
     rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
     q = controller.states["q"].mx
     # global JCS gives the local matrix according to the global matrix
-    principal_finger_axis= controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
     y = MX.zeros(4)
     y[:4] = np.array([0, 1, 0, 1])
     # @ x : pour avoir l'orientation du vecteur x du jcs local exprimé dans le global
@@ -79,6 +82,8 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
     return output_casadi
 
     # principal_finger_axis = all_pn.nlp.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+
+
 # def Minimize_Power(controller: PenaltyController, segment_idx:int, method:int):
 #
 #     segments_qdot = controller.states["qdot"].cx[segment_idx]
@@ -91,14 +96,12 @@ def prepare_ocp(
     ode_solver: OdeSolver = OdeSolver.COLLOCATION(polynomial_degree=4),
     # assume_phase_dynamics: bool = True,
 ) -> OptimalControlProgram:
-
     biorbd_model = (
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
         BiorbdModel(biorbd_model_path),
-
     )
 
     # Average of N frames by phase ; Average of phases time ; both measured with the motion capture datas.
@@ -571,12 +574,21 @@ def prepare_ocp(
     # Define control path constraint
     u_bounds = BoundsList()
 
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau, phase=0)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau, phase=1)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau, phase=2)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau, phase=3)
-    u_bounds.add("tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau, phase=4)
-
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[0].nb_tau, max_bound=[tau_max] * biorbd_model[0].nb_tau, phase=0
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[1].nb_tau, max_bound=[tau_max] * biorbd_model[1].nb_tau, phase=1
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[2].nb_tau, max_bound=[tau_max] * biorbd_model[2].nb_tau, phase=2
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[3].nb_tau, max_bound=[tau_max] * biorbd_model[3].nb_tau, phase=3
+    )
+    u_bounds.add(
+        "tau", min_bound=[tau_min] * biorbd_model[4].nb_tau, max_bound=[tau_max] * biorbd_model[4].nb_tau, phase=4
+    )
 
     u_init = InitialGuessList()
     u_init.add("tau", [tau_init] * biorbd_model[0].nb_tau, phase=0)
@@ -617,20 +629,22 @@ def main():
     sol = ocp.solve(solv)
     #
     # # --- Take important states for Finger_Marker_5 and Finger_marker --- # #
-    q_sym = MX.sym('q_sym', 7, 1)
-    qdot_sym = MX.sym('qdot_sym', 7, 1)
-    tau_sym = MX.sym('tau_sym', 7, 1)
+    q_sym = MX.sym("q_sym", 7, 1)
+    qdot_sym = MX.sym("qdot_sym", 7, 1)
+    tau_sym = MX.sym("tau_sym", 7, 1)
 
-    Calculaing_Force = Function("Temp", [q_sym, qdot_sym, tau_sym], [ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)])
+    Calculaing_Force = Function(
+        "Temp",
+        [q_sym, qdot_sym, tau_sym],
+        [ocp.nlp[2].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    )
 
     rows = 9
     cols = 4
     F = [[0] * cols for _ in range(rows)]
 
     for i in range(0, 9):
-
-        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i],
-        sol.controls[2]['tau'][:, i])
+        F[i] = Calculaing_Force(sol.states[2]["q"][:, i], sol.states[2]["qdot"][:, i], sol.controls[2]["tau"][:, i])
 
     F_array = np.array(F)
     # --- Download datas on a .pckl file --- #
@@ -650,8 +664,7 @@ def main():
         Force_Values=F_array,
     )
 
-    with open(
-            "/home/alpha/Desktop/Nov. 14/Struck_without_Thorax.pckl", "wb") as file:
+    with open("/home/alpha/Desktop/Nov. 14/Struck_without_Thorax.pckl", "wb") as file:
         pickle.dump(data, file)
 
     # # --- Print results --- # #
