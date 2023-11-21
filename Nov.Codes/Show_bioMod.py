@@ -12,7 +12,7 @@ b = bioviz.Viz(
     show_gravity_vector=True,
     show_global_ref_frame=False,
     show_local_ref_frame=False,
-    show_markers=False,
+    show_markers=True,
     show_meshes=True,
 )
 b.exec()

@@ -1,4 +1,8 @@
-// The kinematics model originates from (https://simtk.org/projects/wu-shoulder), which is itself based on Holzbaur
+// This kinematic model is derived from the Wu-Shoulder model available at (https://simtk.org/projects/wu-shoulder). It is built upon the principles established in Holzbaur work.
+// The thorax kinematics in this model are derived from the Dynamic Arm Simulator, available at (https://simtk.org/projects/das). The pelvic kinematics are based on the Rajagopal Full Body Model, which is used in dynamic simulations of human gait and can be found at (https://simtk.org/projects/full_body).
+// The inertial parameters for the scapula and clavicle segments have been updated based on the findings from the article "Benchmarking of dynamic simulation predictions in two software platforms using an upper limb musculoskeletal model." This article was published in July 2014 in the Computer Methods in Biomechanics and Biomedical Engineering journal, Volume 18, Issue 13, and can be accessed through DOI: 10.1080/10255842.2014.916698.
+// The Wrist and Finger kinematics model used in this project is derived from the Finger project available on SimTK (https://simtk.org/projects/finger). For the wrist component, relevant inertial parameters can be found in the publication entitled: Quantification of the uncertainties in resultant joint moments computed in a dynamic activity, published in the Journal of Sports Sciences in July 1996.
+
 version 4
 
 gravity 0 0 -9.81
@@ -9,229 +13,291 @@ endsegment
 segment pelvis
     parent ground
        RT pi/2 0 0 xyz 0 0 0
-	// translations	xyz
-	 rotations	z
-        rangesQ //-10   10
-                //-5    5
-                //-0.5  1.5
-                //-pi/2 pi/2
-              //  -pi/8 pi/8
-                  -pi/8 pi/8
-        rangesQdot //-5      5
- 	               //-5      5
-                   // -5      5
-                   //-5.2360 5.2360
-                   //-5.2360 5.2360
-                   -5.2360 5.2360
-	mass	11.777
-	inertia
-		0.1028	0	0
-		0	0.0878	0
-		0	0	0.0579
+       // RT (rotation-translation matrix): Set the initial orientation and position
+       // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
 
-    com	0.0707	0	0
+    // Translation parameters (xyz coordinates)
+    // Rotational parameters around the z-axis
+    rotations z
+        rangesQ
+            // Range of motion constraints (in radians)
+            -pi/8 pi/8
+            // Limited to -pi/8 to pi/8 radians to simulate realistic pelvic motion
+
+    rangesQdot
+        // Rate of change of the angle (angular velocity limits)
+        -5.2360 5.2360
+        // Set to -5.2360 to 5.2360 rad/s, representing realistic speed of pelvic rotation
+
+    mass 11.777
+    // Mass of the pelvis segment in kilograms
+
+    inertia
+        // Inertia tensor matrix (in kg.m^2), representing the pelvis's resistance to rotation about each principal axis
+        0.1028 0 0
+        0 0.0878 0
+        0 0 0.0579
+
+    com 0.0707 0 0
+    // Center of Mass (com) coordinates relative to the segment's reference frame (in meters)
 
 endsegment
 
 segment pelvis_r
     parent pelvis
-     // translations xz
-     // rotations zy
-        RT 0 0 0 xyz 0.13 -0.07 0
+    // This segment is a child of the 'pelvis' segment, representing the right side of the pelvis
+
+    // Setting the translation (x, z) and rotation (z, y) parameters
+    RT 0 0 0 xyz 0.13 -0.07 0
+    // RT (rotation-translation matrix): No initial rotation, translated to (0.13, -0.07, 0)
+
+    // Assigning a mesh file for the graphical representation of the right pelvis
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
+    // The mesh file 'r_pelvis_Rajagopal.vtp' is used to visually represent this segment
+
 endsegment
 
 segment pelvis_l
     parent pelvis
-     // translations xz
-     //rotations zy
-       RT 0 0 0 xyz 0.13 -0.07 0
+    // This segment is a child of the 'pelvis' segment, representing the left side of the pelvis
+
+    // Setting the translation (x, z) and rotation (z, y) parameters
+    RT 0 0 0 xyz 0.13 -0.07 0
+    // RT (rotation-translation matrix): No initial rotation, translated to (0.13, -0.07, 0)
+
+    // Assigning a mesh file for the graphical representation of the left pelvis
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
+    // The mesh file 'l_pelvis_Rajagopal.vtp' is used to visually represent this segment
+
 endsegment
-
-
 segment thorax
     parent pelvis
-     // translations xz
+    // The 'thorax' segment is a child of the 'pelvis' segment
+
+    // Setting up translations (x, z) and rotations (y, z)
     rotations yz
     RT 0 0 0 xyz 0 0.13 0
+    // RT (rotation-translation matrix): No initial rotation, translated to (0, 0.13, 0)
+
+    // Defining ranges of motion for the thorax
     ranges
-        //-0.1 0.1
        -0.1 0.1
        -0.1 0.1
-    mass	20
-    com	 0.0591 0.1486 0
+    // Two ranges specified, each with limits -0.1 to 0.1 (likely in radians)
+
+    // Physical properties of the thorax segment
+    mass 20
+    // Mass of the thorax in kilograms
+
+    com 0.0591 0.1486 0
+    // Center of Mass (com) coordinates relative to the thorax's reference frame (in meters)
+
     inertia
-        1.29841	0.000000	0.000000
-        0.000000	0.55245	0.000000
-        0.000000	0.000000	1.29841
+        1.29841 0.000000 0.000000
+        0.000000 0.55245 0.000000
+        0.000000 0.000000 1.29841
+    // Inertia tensor matrix for the thorax (in kg.m^2)
 
 endsegment
 
 segment thorax_3D
     parent thorax
-     // translations xz
-     // rotations zy
+    // The 'thorax_3D' segment is a child of the 'thorax' segment
+
+    // Setting up translations (x, z) and rotations (z, y)
     RT 0 0 0 xyz 0.045 0.23 0
-    ranges
-    //  -0.1 0.1
-    //  -0.1 0.1
+    // RT (rotation-translation matrix): No initial rotation, translated to (0.045, 0.23, 0)
+
+    // Assigning a mesh file for the graphical representation of the thorax
     meshfile mesh_files/thorax.vtp
+    // The mesh file 'thorax.vtp' is used for visual representation of this segment
+
 endsegment
 
 segment hat_spine
-	parent	thorax_3D
+    parent thorax_3D
+    // This segment is a child of 'thorax_3D', representing the hat spine
+
+    // Assigning a mesh file for the graphical representation
     meshfile mesh_files/hat_spine.vtp
+    // The mesh file 'hat_spine.vtp' is used for the visual representation of this segment
+
 endsegment
 
 segment clavicle_effector_right
     parent thorax_3D
-    // rotations xyz  // This correspond to a YXZ sequence
-   // rotations xy
-    ranges
-    //    -0.1 0.1
-    //    -0.15 0.3
+    // This segment is a child of 'thorax_3D', representing the right clavicle effector
+
+    // Setting up a rotation-translation matrix
     RTinmatrix 1
     RT
-    0.015299995323 -0.994472543667 -0.103812017405   0.006325
-    0.989298697571  0               0.14541602438    0.00693
-    -0.145099955643 -0.10499695182   0.983909164962   0.025465
-    0               0               0                1
-    endsegment
+    // The matrix defines the orientation and position of the clavicle effector
+    0.015299995323 -0.994472543667 -0.103812017405 0.006325
+    0.989298697571 0 0.14541602438 0.00693
+    -0.145099955643 -0.10499695182 0.983909164962 0.025465
+    0 0 0 1
+
+endsegment
 
 segment clavicle_right
     parent clavicle_effector_right
+    // This segment is a child of 'clavicle_effector_right', representing the right clavicle
+
+    // Setting up a rotation-translation matrix
     RTinmatrix 1
     RT
-        0.015299995323 0.989298697571 -0.145099955643   0
-       -0.994472543667 0              -0.10499695182    0
-       -0.103812017405 0.14541602438   0.983909164962   0
-        0              0               0                1
+    // The matrix defines the orientation and position of the clavicle
+    0.015299995323 0.989298697571 -0.145099955643 0
+    -0.994472543667 0 -0.10499695182 0
+    -0.103812017405 0.14541602438 0.983909164962 0
+    0 0 0 1
+
+    // Physical properties of the right clavicle
     mass 0.156
     com -0.011096 0.00637 0.05417
     inertia
-    0.00024	-0.000002	-0.00007
-    -0.000002	0.00026	0.00005
-    -0.00007	0.00005	0.00004
+    0.00024 -0.000002 -0.00007
+    -0.000002 0.00026 0.00005
+    -0.00007 0.00005 0.00004
+
+    // Assigning a mesh file for graphical representation
     meshfile mesh_files/clavicle.vtp
+
 endsegment
 
 segment scapula_effector_right
-      parent clavicle_right
-    // rotations xyz  // This correspond to a ZYX sequence
-    // rotations xz
-    ranges
-     // -0.5  0.1
-     // -0.05 0.5
+    parent clavicle_right
+    // This segment is a child of 'clavicle_right', representing the right scapula effector
+
+    // Setting up a rotation-translation matrix
     RT -0.52 0.52 0 xyz -0.01433 0.02007 0.135535
+    // The matrix defines the orientation and position of the scapula effector
+
 endsegment
 
 segment scapula_right
     parent scapula_effector_right
+    // This segment is a child of 'scapula_effector_right', representing the right scapula
+
+    // Setting up a rotation-translation matrix
     RT 0.52 -0.52 0 xyz 0 0 0
+    // The matrix defines the orientation and position of the scapula
+
+    // Physical properties of the right scapula
     mass 0.70396
     com -0.054694 -0.035.3 -0.04373
     inertia
-    0.00124	0.00045	0.00041
-    0.00045	0.00115	0.00024
-    0.00041	0.00024	0.00137
+    0.00124 0.00045 0.00041
+    0.00045 0.00115 0.00024
+    0.00041 0.00024 0.00137
+
+    // Assigning a mesh file for graphical representation
     meshfile mesh_files/scapula.vtp
 
 endsegment
-
 segment humerus_right
-    parent scapula_right                        // segment parent
-    RT 0 0 0 xyz -0.00955 -0.034 0.009           // roto-translation et coordonnees de l'origine de mon repere par rapport au repere globale
-	rotations xyz                               // degres de liberte
+    parent scapula_right  // The right humerus is a child of the right scapula
+    RT 0 0 0 xyz -0.00955 -0.034 0.009  // Roto-translation matrix and coordinates of the origin in the global frame
 
-	ranges                                      // limites d angles de rotation des ddl
-	   -pi/2 0.1
+    rotations xyz  // Degrees of freedom in x, y, z axes
+
+    ranges  // Rotation angle limits for each degree of freedom
+       -pi/2 0.1
        -pi/2 pi/2
-        -pi/4 pi
+       -pi/4 pi
 
-    mass 2.0325                                 // masse en kg du segment
-    com 0 -0.164502 0                           // coordonnes du center of mass
-    inertia
-        0.011946 0 0                            // matrice d inertie du segment pour bloquer les rotations
-        0 0.004121 0                            // affichage par rapport a l'origine de mon repere
+    mass 2.0325  // Mass of the humerus segment in kilograms
+    com 0 -0.164502 0  // Center of mass coordinates
+    inertia  // Inertia matrix to restrict rotations, relative to the segment's frame
+        0.011946 0 0
+        0 0.004121 0
         0 0 0.013409
-    meshfile mesh_files/humerus.vtp             // fichier .vpt pour obtenir un maillage visuel
+
+    meshfile mesh_files/humerus.vtp  // Visual mesh file for the humerus
+
 endsegment
 
 segment ulna_effector_right
-    parent humerus_right
-    RTinmatrix 1
-    RT
-        0.998779074059439     0                   0.0494000123579900   0.0061
-       -0.00181025108711977   0.999328355607296   0.0366000091559926  -0.2904
-       -0.0493668331166902   -0.0366447496814640  0.998108249694797   -0.0123
-        0                     0                   0                    1
-	rotations z
-	ranges
-	    0.05 pi*3/4
+    parent humerus_right  // The right ulna effector is a child of the right humerus
+    RTinmatrix 1  // Enable the following RT matrix
+    RT  // Rotation-translation matrix
+        0.998779074059439 0 0.0494000123579900 0.0061
+       -0.00181025108711977 0.999328355607296 0.0366000091559926 -0.2904
+       -0.0493668331166902 -0.0366447496814640 0.998108249694797 -0.0123
+        0 0 0 1
+
+    rotations z  // Degree of freedom in the z-axis
+    ranges  // Range of motion limit
+        0.05 pi*3/4
+
 endsegment
 
 segment ulna_right
-    parent ulna_effector_right
-    RTinmatrix 1
-    RT
-        0.998779074059439  -0.00181025108711977 -0.0493668331166902   0
-        0                   0.999328355607296   -0.0366447496814640   0
-        0.0494000123579900  0.0366000091559926   0.998108249694797    0
-        0                   0                    0                    1
-    mass 0.6075
-    com 0 -0.120525 0
-    inertia
+    parent ulna_effector_right  // The right ulna is a child of the right ulna effector
+    RTinmatrix 1  // Enable the following RT matrix
+    RT  // Rotation-translation matrix
+        0.998779074059439 -0.00181025108711977 -0.0493668331166902 0
+        0 0.999328355607296 -0.0366447496814640 0
+        0.0494000123579900 0.0366000091559926 0.998108249694797 0
+        0 0 0 1
+
+    mass 0.6075  // Mass of the ulna segment in kilograms
+    com 0 -0.120525 0  // Center of mass coordinates
+    inertia  // Inertia matrix
         0.002962 0 0
         0 0.000618 0
         0 0 0.003213
-    meshfile mesh_files/ulna.vtp
+
+    meshfile mesh_files/ulna.vtp  // Visual mesh file for the ulna
+
 endsegment
 
-
 segment radius_effector_right
-    parent ulna_right
-    rotations y
-	ranges
-	     -1.48 1.48
-    RTinmatrix 1
-    RT
-        0.999852739302321   -0.0171609938419917  0                  0.0004
-        0.0170376379745462   0.992665643781517   0.119685582039255 -0.011503
-       -0.00205392353635084 -0.119667957056942   0.992811845946615  0.019999
-        0                    0                   0                  1
+    parent ulna_right  // The right radius effector is a child of the right ulna
+    rotations y  // Degree of freedom in the y-axis
+    ranges  // Range of motion limit
+         -1.48 1.48
+
+    RTinmatrix 1  // Enable the following RT matrix
+    RT  // Rotation-translation matrix
+        0.999852739302321 -0.0171609938419917 0 0.0004
+        0.0170376379745462 0.992665643781517 0.119685582039255 -0.011503
+       -0.00205392353635084 -0.119667957056942 0.992811845946615 0.019999
+        0 0 0 1
+
 endsegment
 
 segment radius_right
-    parent radius_effector_right
-    RTinmatrix 1
-    RT
-        0.999852739302321   0.0170376379745462 -0.00205392353635084 0
-       -0.0171609938419917  0.992665643781517  -0.119667957056942   0
-        0                   0.119685582039255   0.992811845946615   0
-        0                   0                   0                   1
-    mass 0.6075
-    com 0 -0.120525 0
-    inertia
+    parent radius_effector_right  // The right radius is a child of the right radius effector
+    RTinmatrix 1  // Enable the following RT matrix
+    RT  // Rotation-translation matrix
+        0.999852739302321 0.0170376379745462 -0.00205392353635084 0
+       -0.0171609938419917 0.992665643781517 -0.119667957056942 0
+        0 0.119685582039255 0.992811845946615 0
+        0 0 0 1
+
+    mass 0.6075  // Mass of the radius segment in kilograms
+    com 0 -0.120525 0  // Center of mass coordinates
+    inertia  // Inertia matrix
         0.002962 0 0
         0 0.000618 0
         0 0 0.003213
-    meshfile mesh_files/radius.vtp
+
+    meshfile mesh_files/radius.vtp  // Visual mesh file for the radius
+
 endsegment
+/// Hand ///
 
-/// Hand ////
+// Lunate Bone Segments
 
-// coco
-// Information about lunate segment
-// Segment
+// Segment for the initial position of the lunate bone, connected to the right radius bone.
 segment lunate_parent_offset
 	parent radius_right
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.017999999999999999 -0.24199999999999999 0.025000000000000001
 endsegment
 
-// Segments to define transformation axis.
-// Segment
+// Placeholder segment for the lunate bone, does not change its position or orientation.
 segment lunate_translation
 	parent lunate_parent_offset
 	RTinMatrix	1
@@ -242,7 +308,7 @@ segment lunate_translation
 		0		0		0		1
 endsegment
 
-// Segment
+// Segment that allows the lunate bone to move side to side.
 segment lunate_deviation
 	parent lunate_translation
 	RTinMatrix	1
@@ -253,20 +319,17 @@ segment lunate_deviation
 		0		0		0		1
 
 	rotations x
-	ranges
-			-pi/5 pi/4
+	ranges -pi/5 pi/4
 
-			//-1.22173 1.22173
-    mass 0.4575
-    com 0 -0.058095 0.02
-    inertia
+	mass 0.4575
+	com 0 -0.058095 0.02
+	inertia
         0.000892 0 0
         0 0.000547 0
         0 0 0.000134
-
 endsegment
 
-// Segment
+// Segment for additional rotation of the lunate bone.
 segment lunate_rotation_1
 	parent lunate_deviation
 	RTinMatrix	1
@@ -277,7 +340,7 @@ segment lunate_rotation_1
 		0		0		0		1
 endsegment
 
-// Segment
+// Segment to enable the lunate bone to bend forward or backward.
 segment lunate_flexion
 	parent lunate_rotation_1
 	RTinMatrix	1
@@ -288,9 +351,7 @@ segment lunate_flexion
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to align the lunate bone correctly after all movements are defined.
 segment lunate_reset_axis
 	parent lunate_flexion
 	RTinMatrix	1
@@ -301,360 +362,316 @@ segment lunate_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual lunate bone segment, visually represented with a mesh file.
 segment lunate
 	parent lunate_reset_axis
 	meshfile	Geometry/lunate.vtp
 	meshscale	1 1 1
 endsegment
 
-
-// Markers
-
-// Information about scaphoid segment
-// Segment
+// Scaphoid Bone Segments
 segment scaphoid_parent_offset
-	parent lunate
-	RTinMatrix	0
-	RT	0 0 0	xyz	0.012345 -0.0044640000000000001 -0.0012539999999999999
+    parent lunate
+    // Defines the starting position of the scaphoid bone relative to the lunate bone
+    RTinMatrix 0
+    RT 0 0 0 xyz 0.012345 -0.0044640000000000001 -0.0012539999999999999
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment scaphoid_reset_axis
-	parent scaphoid_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent scaphoid_parent_offset
+    // Resets the transformation axis for the scaphoid bone
+    RTinMatrix 1
+    RT 1.0 0.0 0.0 0 0.0 1.0 0.0 0 0.0 0.0 1.0 0 0 0 0 1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment scaphoid
-	parent scaphoid_reset_axis
-	meshfile	Geometry/scaphoid.vtp
-	meshscale	1 1 1
+    parent scaphoid_reset_axis
+    // Actual scaphoid bone segment with a mesh file for visual representation
+    meshfile Geometry/scaphoid.vtp
+    meshscale 1 1 1
 endsegment
-
-// Markers
-
 // Information about pisiform segment
-// Segment
+
+// Setting the parent offset for the pisiform bone, relative to the lunate bone
 segment pisiform_parent_offset
-	parent lunate
-	RTinMatrix	0
-	RT	0 0 0	xyz	-0.013388000000000001 -0.0098860000000000007 -0.010593
+    parent lunate  // Setting the lunate as the parent bone
+    RTinMatrix 0   // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz -0.013388000000000001 -0.0098860000000000007 -0.010593 // Specifying the position offset
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis effects for the pisiform
 segment pisiform_reset_axis
-	parent pisiform_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent pisiform_parent_offset  // Setting pisiform parent offset as parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT            // Identity matrix, used to reset the axis without any additional transformation
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// The actual pisiform segment where inertial values are applied
 segment pisiform
-	parent pisiform_reset_axis
-	meshfile	Geometry/pisiform.vtp
-	meshscale	1 1 1
+    parent pisiform_reset_axis  // Setting the reset axis segment as the parent
+    meshfile Geometry/pisiform.vtp  // Using a mesh file for the visual representation of the pisiform
+    meshscale 1 1 1  // Setting the scale for the mesh
 endsegment
-
 // Markers
 
-// Information about triquetrum segment
-// Segment
+// Triquetrum Bone Segments
+
+// Setting the parent offset for the triquetrum bone, relative to the lunate bone
 segment triquetrum_parent_offset
-	parent lunate
-	RTinMatrix	0
-	RT	0 0 0	xyz	-0.010784 -0.0074989999999999996 -0.001289
+    parent lunate  // Setting the lunate as the parent bone
+    RTinMatrix 0   // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz -0.010784 -0.0074989999999999996 -0.001289 // Specifying the position offset
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis effects for the triquetrum
 segment triquetrum_reset_axis
-	parent triquetrum_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent triquetrum_parent_offset  // Setting triquetrum parent offset as parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT            // Identity matrix, used to reset the axis without any additional transformation
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// The actual triquetrum segment where inertial values are applied
 segment triquetrum
-	parent triquetrum_reset_axis
-	meshfile	Geometry/triquetrum.vtp
-	meshscale	1 1 1
+    parent triquetrum_reset_axis  // Setting the reset axis segment as the parent
+    meshfile Geometry/triquetrum.vtp  // Using a mesh file for the visual representation of the triquetrum
+    meshscale 1 1 1  // Setting the scale for the mesh
 endsegment
 
-// Markers
+// Capitate Bone Segments
 
-// Information about capitate segment
-// Segment
+// Setting the parent offset for the capitate bone, relative to the lunate bone
 segment capitate_parent_offset
-	parent lunate
-	RTinMatrix	0
-	RT	0 0 0	xyz	0.0039919999999999999 -0.015054 0.0023270000000000001
+    parent lunate  // Setting the lunate as the parent bone
+    RTinMatrix 0   // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz 0.0039919999999999999 -0.015054 0.0023270000000000001 // Specifying the position offset
 endsegment
 
-// Segments to define transformation axis.
-// Segment
+// Translation segment for capitate bone
 segment capitate_translation
-	parent capitate_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent capitate_parent_offset  // Setting capitate parent offset as parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT            // Identity matrix, used to define the translation axis
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-// Segment
+// Segment for defining proximal-distal rotation axis for the capitate bone
 segment capitate_proximal_distal_r1
-	parent capitate_translation
-	RTinMatrix	1
-	RT
-		0.8991357010800273		0.3570336377373785		-0.2531441734809279		0
-		-0.3490528839570106		0.23603342924045692		-0.9068904589211885		0
-		-0.264039912219008		0.9037782923953221		0.3368497038003358		0
-		0		0		0		1
+    parent capitate_translation
+    RTinMatrix 1
+    RT  // Custom rotation matrix for proximal-distal rotation
+        0.8991357010800273 0.3570336377373785 -0.2531441734809279 0
+        -0.3490528839570106 0.23603342924045692 -0.9068904589211885 0
+        -0.264039912219008 0.9037782923953221 0.3368497038003358 0
+        0 0 0 1
 endsegment
 
-// Segment
+// Segment for additional rotation of the capitate bone
 segment capitate_rotation_1
-	parent capitate_proximal_distal_r1
-	RTinMatrix	1
-	RT
-		0.061293930445223216		-0.3490528839570106		-0.9350963256755263		0
-		0.971437784391529		0.23603342924045698		-0.024430541080123387		0
-		0.22924154323999285		-0.9068904589211885		0.35355057682128394		0
-		0		0		0		1
+    parent capitate_proximal_distal_r1
+    RTinMatrix 1
+    RT  // Custom rotation matrix for additional rotation
+        0.061293930445223216 -0.3490528839570106 -0.9350963256755263 0
+        0.971437784391529 0.23603342924045698 -0.024430541080123387 0
+        0.22924154323999285 -0.9068904589211885 0.35355057682128394 0
+        0 0 0 1
 endsegment
 
-// Segment
+// Capitate Bone Additional Segments
+
+// Segment for further defining the proximal-distal rotation of the capitate bone
 segment capitate_proximal_distal_r3
-	parent capitate_rotation_1
-	RTinMatrix	1
-	RT
-		-0.5081404048264143		0.8170609178664		0.27240555331740973		0
-		0.8507218547986313		0.5255072177209128		0.01069999491600392		0
-		-0.13440853674832176		0.23717845732389287		-0.9621230298826827		0
-		0		0		0		1
+    parent capitate_rotation_1  // Setting the previous rotation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for defining specific bone orientation
+        -0.5081404048264143 0.8170609178664 0.27240555331740973 0
+        0.8507218547986313 0.5255072177209128 0.01069999491600392 0
+        -0.13440853674832176 0.23717845732389287 -0.9621230298826827 0
+        0 0 0 1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis for the capitate bone
 segment capitate_reset_axis
-	parent capitate_proximal_distal_r3
-	RTinMatrix	1
-	RT
-		-0.04854814734976815		0.8507218547986306		-0.5233692799132199		0
-		0.058289983023280215		0.5255072177209125		0.8487899869828642		0
-		0.9971185261883616		0.010699994916003838		-0.07510096431302729		0
-		0		0		0		1
+    parent capitate_proximal_distal_r3  // Setting the previous rotation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix to reset transformation effects
+        -0.04854814734976815 0.8507218547986306 -0.5233692799132199 0
+        0.058289983023280215 0.5255072177209125 0.8487899869828642 0
+        0.9971185261883616 0.010699994916003838 -0.07510096431302729 0
+        0 0 0 1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual capitate bone segment
 segment capitate
-	parent capitate_reset_axis
-	meshfile	Geometry/capitate.vtp
-	meshscale	1 1 1
+    parent capitate_reset_axis  // Setting the reset axis segment as the parent
+    meshfile Geometry/capitate.vtp  // Using a mesh file for visual representation of the capitate
+    meshscale 1 1 1  // Setting the scale for the mesh
 endsegment
 
-// Markers
+// Trapezium Bone Segments
 
-// Information about trapezium segment
-// Segment
+// Setting the parent offset for the trapezium bone, relative to the capitate bone
 segment trapezium_parent_offset
-	parent capitate
-	RTinMatrix	0
-	RT	0 0 0	xyz	0.015292999999999999 -0.0045690000000000001 -0.010307999999999999
+    parent capitate  // Setting the capitate as the parent bone
+    RTinMatrix 0  // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz 0.015292999999999999 -0.0045690000000000001 -0.010307999999999999 // Position offset
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis for the trapezium
 segment trapezium_reset_axis
-	parent trapezium_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent trapezium_parent_offset
+    RTinMatrix 1
+    RT  // Identity matrix, used to reset the axis without any additional transformation
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual trapezium bone segment
 segment trapezium
-	parent trapezium_reset_axis
-	meshfile	Geometry/trapezium.vtp
-	meshscale	1 1 1
+    parent trapezium_reset_axis
+    meshfile Geometry/trapezium.vtp
+    meshscale 1 1 1
 endsegment
+// Trapezoid Bone Segments
 
-// Markers
-
-// Information about trapezoid segment
-// Segment
+// Setting the parent offset for the trapezoid bone, relative to the capitate bone
 segment trapezoid_parent_offset
-	parent capitate
-	RTinMatrix	0
-	RT	0 0 0	xyz	0.0091430000000000001 -0.0040619999999999996 -0.002464
+    parent capitate  // Setting the capitate as the parent bone
+    RTinMatrix 0  // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz 0.0091430000000000001 -0.0040619999999999996 -0.002464 // Position offset
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis for the trapezoid
 segment trapezoid_reset_axis
-	parent trapezoid_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent trapezoid_parent_offset
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Identity matrix, used to reset the axis without any additional transformation
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual trapezoid bone segment
 segment trapezoid
-	parent trapezoid_reset_axis
-	meshfile	Geometry/trapezoid.vtp
-	meshscale	1 1 1
+    parent trapezoid_reset_axis
+    meshfile Geometry/trapezoid.vtp  // Using a mesh file for visual representation of the trapezoid
+    meshscale 1 1 1  // Setting the scale for the mesh
 endsegment
 
-// Markers
+// Hamate Bone Segments
 
-// Information about hamate segment
-// Segment
+// Setting the parent offset for the hamate bone, relative to the capitate bone
 segment hamate_parent_offset
-	parent capitate
-	RTinMatrix	0
-	RT	0 0 0	xyz	-0.010969 -0.0024949999999999998 -0.00075000000000000002
+    parent capitate  // Setting the capitate as the parent bone
+    RTinMatrix 0  // Disabling any rotation-translation matrix effect
+    RT 0 0 0 xyz -0.010969 -0.0024949999999999998 -0.00075000000000000002 // Position offset
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis for the hamate
 segment hamate_reset_axis
-	parent hamate_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent hamate_parent_offset
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Identity matrix, used to reset the axis without any additional transformation
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual hamate bone segment
 segment hamate
-	parent hamate_reset_axis
-	meshfile	Geometry/hamate.vtp
-	meshscale	1 1 1
+    parent hamate_reset_axis
+    meshfile Geometry/hamate.vtp  // Using a mesh file for visual representation of the hamate
+    meshscale 1 1 1  // Setting the scale for the mesh
 endsegment
 
-
+// These segments form part of a detailed biomechanical model of the hand, specifying the positional and rotational parameters for each bone, along with their visual representation through mesh files.
 // Markers
 
-// Information about firstmc1 segment
-// Segment
+// First Metacarpal of the Thumb (firstmc1) Segments
+
+// Setting the parent offset for the first metacarpal (firstmc1) bone, relative to the trapezium bone
 segment firstmc1_parent_offset
-	parent trapezium
+    parent trapezium  // Setting the trapezium as the parent bone
+    // No rotation-translation matrix specified, using parent's orientation directly
 endsegment
 
-// Segments to define transformation axis.
-// Segment
+// Translation segment for the first metacarpal bone
 segment firstmc1_translation
-	parent firstmc1_parent_offset
-	RTinMatrix	1
-	RT
-		1.0		0.0		0.0		0
-		0.0		1.0		0.0		0
-		0.0		0.0		1.0		0
-		0		0		0		1
+    parent firstmc1_parent_offset  // Setting firstmc1 parent offset as parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Identity matrix, used to define the translation axis
+        1.0 0.0 0.0 0
+        0.0 1.0 0.0 0
+        0.0 0.0 1.0 0
+        0   0   0   1
 endsegment
 
-// Segment
+// First rotation segment for the first metacarpal bone
 segment firstmc1_rotation_0
-	parent firstmc1_translation
-	RTinMatrix	1
-	RT
-		0.5251729214670923		0.2967546265241401		0.797577641483409		0
-		0.7177628926681261		-0.657966294424298		-0.22780865942769193		0
-		0.4571759316350803		0.692110574285696		-0.5585455402163018		0
-		0		0		0		1
+    parent firstmc1_translation  // Setting the translation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for the first rotation
+        0.5251729214670923 0.2967546265241401 0.797577641483409 0
+        0.7177628926681261 -0.657966294424298 -0.22780865942769193 0
+        0.4571759316350803 0.692110574285696 -0.5585455402163018 0
+        0 0 0 1
 endsegment
 
-// Segment
+// Second rotation segment for the first metacarpal bone
 segment firstmc1_rotation_1
-	parent firstmc1_rotation_0
-	RTinMatrix	1
-	RT
-		0.2704719613258961		0.9303056121174157		-0.24774258051324835		0
-		0.5930643675840277		0.04170260757467298		0.8040743425975178		0
-		0.7583663850927733		-0.3644068613299057		-0.5404517234471612		0
-		0		0		0		1
+    parent firstmc1_rotation_0  // Setting the previous rotation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for the second rotation
+        0.2704719613258961 0.9303056121174157 -0.24774258051324835 0
+        0.5930643675840277 0.04170260757467298 0.8040743425975178 0
+        0.7583663850927733 -0.3644068613299057 -0.5404517234471612 0
+        0 0 0 1
 endsegment
 
-// Segment
+// Flexion segment for the first metacarpal bone
 segment firstmc1_cmc_flexion
-	parent firstmc1_rotation_1
-	RTinMatrix	1
-	RT
-		0.9462252553051865		-0.14607940263099034		0.2886495701531661		0
-		0.15253753824774471		0.9882976700723399		0.00012146975881990502		0
-		-0.2852894418795625		0.043914957093882406		0.9574348076477532		0
-		0		0		0		1
+    parent firstmc1_rotation_1  // Setting the previous rotation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for flexion
+        0.9462252553051865 -0.14607940263099034 0.2886495701531661 0
+        0.15253753824774471 0.9882976700723399 0.00012146975881990502 0
+        -0.2852894418795625 0.043914957093882406 0.9574348076477532 0
+        0 0 0 1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
+// Segment to reset the transformation axis for the first metacarpal bone
 segment firstmc1_reset_axis
-	parent firstmc1_cmc_flexion
-	RTinMatrix	1
-	RT
-		0.9973653055773637		-0.07213783340092361		-0.007653771801680049		0
-		0.058862320957796616		0.7430954635263113		0.6665915985504752		0
-		-0.042398990577995295		-0.6652858521559264		0.7453838343559175		0
-		0		0		0		1
+    parent firstmc1_cmc_flexion  // Setting the flexion segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix to reset transformation effects
+        0.9973653055773637 -0.07213783340092361 -0.007653771801680049 0
+        0.058862320957796616 0.7430954635263113 0.6665915985504752 0
+        -0.042398990577995295 -0.6652858521559264 0.7453838343559175 0
+        0 0 0 1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
+// Actual first metacarpal bone segment
 segment firstmc1
-	parent firstmc1_reset_axis
-	RTinMatrix	0
-	RT	-0.0	 0.0	 -0.0	xyz	-0.0	 -0.0	 -0.0
+    parent firstmc1_reset_axis  // Setting the reset axis segment as the parent
+    RTinMatrix 0  // Disabling the rotation-translation matrix
+    RT -0.0 0.0 -0.0 xyz -0.0 -0.0 -0.0  // Position specified but no movement relative to the parent
 endsegment
+
+// These segments together define the positional and rotational parameters for the first metacarpal bone of the thumb, ensuring realistic movement and proper alignment in the biomechanical model.
 
 // Markers
 
@@ -1043,44 +1060,39 @@ segment 2proxph_translation
 		0.0		0.0		1.0		0
 		0		0		0		1
 endsegment
-
-// Segment
+// Segment for Flexion of the Proximal Phalanx of the Second Finger (2proxph)
 segment 2proxph_2mcp_flexion
-	parent 2proxph_translation
-	RTinMatrix	1
-	RT
-		0.9975061485845479		0.018161698909964545		-0.06820290484081867		0
-		-0.0394960058829821		0.9444951422665675		-0.32614259420405034		0
-		0.05849400871297349		0.3280229853646847		0.9428570262861313		0
-		0		0		0		1
-
-	mass 0.1
-	COM 0.015 -0.04 0.015
-	inertia
-        0.000011946 0 0                            // matrice d inertie du segment pour bloquer les rotations
-        0 0.000004121 0                            // affichage par rapport a l'origine de mon repere
+    parent 2proxph_translation  // Setting the translation segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for flexion movement
+        0.9975061485845479 0.018161698909964545 -0.06820290484081867 0
+        -0.0394960058829821 0.9444951422665675 -0.32614259420405034 0
+        0.05849400871297349 0.3280229853646847 0.9428570262861313 0
+        0 0 0 1
+    mass 0.1  // Setting the mass of the segment
+    COM 0.015 -0.04 0.015  // Center of Mass (COM) of the segment
+    inertia  // Inertia matrix to restrict rotations around specific axes
+        0.000011946 0 0
+        0 0.000004121 0
         0 0 0.000013409
-
-	rotations x
-	ranges
-			-pi/4 pi/4
-	// meshcolor 0 0 1
-
+    rotations x  // Allowing rotation around the x-axis
+    ranges -pi/4 pi/4  // Limiting the range of rotation
+    // meshcolor 0 0 1  // Optional color setting for the mesh (commented out)
 endsegment
 
-// Segment
+// Segment for Additional Rotation of the Proximal Phalanx of the Second Finger (2proxph)
 segment 2proxph_rotation_1
-	parent 2proxph_2mcp_flexion
-	RTinMatrix	1
-	RT
-		0.7240231870765602		-0.19753826633213922		-0.6608850565037716		0
-		0.4073597926978526		0.8956396823256875		0.17857087874763944		0
-		0.5566403002556166		-0.39850745636441276		0.7289330444926355		0
-		0		0		0		1
-	//ranges
-	//		-0.87266462599700001 1.20
+    parent 2proxph_2mcp_flexion  // Setting the flexion segment as the parent
+    RTinMatrix 1  // Enabling the rotation-translation matrix
+    RT  // Custom rotation matrix for additional rotation
+        0.7240231870765602 -0.19753826633213922 -0.6608850565037716 0
+        0.4073597926978526 0.8956396823256875 0.17857087874763944 0
+        0.5566403002556166 -0.39850745636441276 0.7289330444926355 0
+        0 0 0 1
+    //ranges -0.87266462599700001 1.20  // Optional range for additional rotation (commented out)
 endsegment
 
+// These segments specifically cater to the movements of the proximal phalanx of the second finger, allowing for realistic flexion and rotation within defined ranges, contributing to the accurate biomechanical modeling of the hand.
 // Segment
 segment 2proxph_2mcp_abduction
 	parent 2proxph_rotation_1
@@ -1567,72 +1579,84 @@ segment 5distph
 	meshfile	Geometry/5distph.vtp
 	meshscale	1 1 1
 endsegment
+////// Finger Contact and Marker Definitions //////
 
-////// Finger contact and marker //////
-
+// Marker for the Thumb
 marker finger_marker_thumb
-        parent distal_thumb
-	    position 0 0 0
-    endmarker
+    parent distal_thumb  // Setting the distal phalanx of the thumb as the parent
+    position 0 0 0  // Marker positioned at the origin of the distal thumb segment
+endmarker
 
+// Marker for the Fifth Finger (Little Finger)
 marker finger_marker_5
-        parent 5distph
-	    position 0 0 0
-    endmarker
+    parent 5distph  // Setting the distal phalanx of the fifth finger as the parent
+    position 0 0 0  // Marker positioned at the origin of the distal segment of the fifth finger
+endmarker
 
+// Marker for the Fourth Finger (Ring Finger)
 marker finger_marker_4
-        parent 4distph
-	    position 0 0 0
-    endmarker
+    parent 4distph  // Setting the distal phalanx of the fourth finger as the parent
+    position 0 0 0  // Marker positioned at the origin of the distal segment of the fourth finger
+endmarker
 
+// Marker for the Third Finger (Middle Finger)
 marker finger_marker_3
-        parent 3distph
-	    position 0 0 0
-    endmarker
+    parent 3distph  // Setting the distal phalanx of the third finger as the parent
+    position 0 0 0  // Marker positioned at the origin of the distal segment of the third finger
+endmarker
 
+// Marker for the Second Finger (Index Finger)
 marker finger_marker
-        parent 2distph
-	    position 0.0025 -0.015 0.0005
-    endmarker
+    parent 2distph  // Setting the distal phalanx of the second finger as the parent
+    position 0.0025 -0.015 0.0005  // Marker positioned at a specific offset on the distal segment of the second finger
+endmarker
 
+// Marker for the Metacarpophalangeal (MCP) Joint Contact of the Second Finger
 marker MCP_contact_finger
-        parent 2proxph_2mcp_flexion
-	    position 0 0 0
-    endmarker
+    parent 2proxph_2mcp_flexion  // Setting the MCP flexion segment of the second finger as the parent
+    position 0 0 0  // Marker positioned at the origin of the MCP flexion segment
+endmarker
 
-contact    contact_finger
-        parent 2distph
-        position 0.0025 -0.015 0.0005
-        axis    xyz
-    endcontact
+// Defining a contact point for the Second Finger
+contact contact_finger
+    parent 2distph  // Setting the distal phalanx of the second finger as the parent
+    position 0.0025 -0.015 0.0005  // Contact point positioned at a specific offset on the distal segment of the second finger
+    axis xyz  // Specifying the axis for the contact point
+endcontact
 
+// These markers and contact points are crucial for simulating interactions of the fingers with objects in the biomechanical model, providing precise locations for collision detection and response calculations.
 
-////// Piano //////
+////// Piano Configuration //////
 
-// début : 0.01
-// touche 1 : 0.023
-// 6 touches et 7 écarts de touche : 6*0.023 + 7*0.001
-// touche 2 : 0.023
-// fin : 0.01
+// Piano Configuration Details:
+// Start space: 0.01
+// First key width: 0.023
+// For 6 keys and 7 spaces between keys: 6*0.023 + 7*0.001
+// Second key width: 0.023
+// End space: 0.01
 
-// touche 1 //
+// Key 1 Configuration
 segment square
-	//meshfile piano_assesmbly_asm.stl
-  //  meshrt 0 0 0 xyz 0 0 0
-   // meshcscale 0.00001 0.00001 0.00001
+    // Optional mesh file for the piano assembly
+    // The mesh rotation and scale parameters are commented out for custom adjustments
 
-    // piano moved from 5 cm
+    // These mesh coordinates define the first key's position and dimensions
+    // The piano is shifted by 5 cm to adjust its position in the simulation
     mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
+       mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
     mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
     mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
     mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
     mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
 
+    // Additional mesh points for completing the key's shape (commented for clarity)
 endsegment
 
-// Touche 2 //
+
+// Key 2 Configuration
 segment square2
+    // Similar to Key 1, these mesh coordinates define the position and dimensions of the second key
+    // Ensures proper alignment and spacing relative to the first key
     mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
     mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
     mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
@@ -1641,60 +1665,82 @@ segment square2
     mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
 endsegment
 
-// Structure //
-segment ligne
+// Piano Structural Framework
+// These segments define the piano's external and internal structure
+segment line1
+    // Mesh points to outline the main frame of the piano
     mesh 0.5056114196777344+0.06 0.45395957946777343 0.07808863830566405-0.01
     mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
 endsegment
 
-segment ligne2
+segment line2
+    // Additional mesh points for the internal structure of the piano
     mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
     mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
 endsegment
 
-segment ligne3
+segment line3
+    // Final mesh points to complete the piano's structural framework
     mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
     mesh 0.5056114196777344+0.06 -0.7760404205322265 0.07808863830566405-0.01
 endsegment
 
-// Marker attacks //
+// Marker Configuration for Simulating Piano Key Presses //
+
+// Marker for the top surface of Key 1
 marker high_square
-    parent ground
-	    position 0.5056114196777344+0.06  -0.16104042053222656 0.07808863830566405-0.01
-	endmarker
+    parent ground  // Anchor point set relative to the ground for stability
+    position 0.5056114196777344+0.06 -0.16104042053222656 0.07808863830566405-0.01
+    // This marker represents the upper surface of the first piano key
+endmarker
 
+// Marker for simulating the upward motion of a key
 marker phase_3_upward
-    parent ground
-	    position 0.6056114196777344+0.06  -0.16104042053222656 0.07808863830566405+0.14
-	endmarker
+    parent ground  // Anchor point relative to the ground
+    position 0.6056114196777344+0.06 -0.16104042053222656 0.07808863830566405+0.14
+    // Positioned to simulate the upward phase of a key press
+endmarker
 
+// Marker for the lower surface of Key 1
 marker low_square
-	    parent ground
-	    position 0.5056114196777344+0.06  -0.16104042053222656 0.07808863830566405-0.01-0.01
-	endmarker
+    parent ground
+    position 0.5056114196777344+0.06 -0.16104042053222656 0.07808863830566405-0.01-0.01
+    // Represents the lower surface of the first key, indicating a pressed state
+endmarker
 
+// Marker for the top surface of Key 2
 marker high_square2
     parent ground
-	    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01
-	endmarker
+    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01
+    // This marker is for the upper surface of the second piano key
+endmarker
 
+// Marker for the lower surface of Key 2
 marker low_square2
-	    parent ground
-	    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01-0.01
-	endmarker
+    parent ground
+    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01-0.01
+    // Indicates the pressed state of the second key
+endmarker
 
 /*
-// To position well the pianist from the piano //
-marker thorax_side
-    parent ground
-    position  0.048954925537109375 0.009166168212890625-0.145 0.18353102111816406
-	endmarker
+// Additional Markers for Positioning the Pianist Relative to the Piano
+// These markers help align the pianist's body and hands with the piano keys
 
+// Marker for the pianist's thorax side
+marker thorax_side
+    parent ground  // Set relative to the ground
+    position 0.048954925537109375 0.009166168212890625-0.145 0.18353102111816406
+    // Assists in correctly positioning the pianist's upper body
+endmarker
+
+// Segment to visualize the distance between the pianist's thorax and the piano
 segment distance_thorax_side_LA
     mesh 0.048954925537109375 0.009166168212890625-0.145 0.18353102111816406
-    mesh 0.5056114196777344  -0.16104042053222656 0.07808863830566405
+    mesh 0.5056114196777344 -0.16104042053222656 0.07808863830566405
+    // Helps in adjusting the pianist's position for a realistic simulation
 endsegment
 */
+
 
 
 
