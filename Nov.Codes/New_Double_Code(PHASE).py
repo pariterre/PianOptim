@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import AutoMinorLocator
 from scipy.interpolate import interp1d
+from scipy.integrate import simps
 
 
 def degrees(radians):
@@ -11,7 +12,7 @@ def degrees(radians):
 
 
 # Load data_1
-with open("/home/alpha/Desktop/Pressed_without_Thorax_2.pckl",
+with open("/home/alpha/Desktop/Pressed_with_Thorax.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
@@ -24,8 +25,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "without (weight_wrist=1)"
-label_2 = "without  (weight_wrist=1000)"
+label_1 = "with"
+label_2 = "without"
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
 array_q_s_1 = [data_1["states_no_intermediate"][i]["q"] for i in range(len(data_1["states_no_intermediate"]))]
@@ -175,3 +176,32 @@ plt.show()
 # plt.legend()
 # plt.tight_layout()
 # plt.show()
+
+# Plotting the data
+plt.figure(figsize=(10, 6))
+plt.step(concatenated_array_time_s_2, concatenated_array_tau_s_2[5,:], label="Wrist_Without", color="blue")
+
+# Shading the area under the curve
+plt.fill_between(concatenated_array_time_s_2, concatenated_array_tau_s_2[5,:], color="skyblue", alpha=0.4)
+
+# Adding labels and title
+plt.xlabel("Time")
+plt.ylabel("Data Value")
+plt.title("Area Under the Curve")
+plt.legend()
+
+# Show the plot
+plt.show()
+
+area = sum(0.5 * (concatenated_array_tau_s_2[5,:][i] + concatenated_array_tau_s_2[5,:][i+1]) * (concatenated_array_time_s_2[i+1] - concatenated_array_time_s_2[i]) for i in range(len(concatenated_array_tau_s_2[5,:])-1))
+
+print("Area under the curve:", area)
+
+def calculate_area_under_curve_simps(time, tau):
+    # Check if both lists have the same length
+    if len(time) != len(tau):
+        raise ValueError("The length of time and tau lists must be the same.")
+
+    # Calculating the area using Simpson's rule
+    area = simps(tau, time)
+    return area

@@ -4,17 +4,11 @@ version 4
 gravity 0 0 -9.81
 
 segment ground
-
 endsegment
 
 segment pelvis
     parent ground
-    RTinMatrix	1
-	RT
-		1	0	0	0
-		0	0	-1	0
-		0	1	0	0
-		0	0	0	1
+       RT pi/2 0 0 xyz 0 0 0
 	// translations	xyz
 	 rotations	z
         rangesQ //-10   10
@@ -22,19 +16,20 @@ segment pelvis
                 //-0.5  1.5
                 //-pi/2 pi/2
               //  -pi/8 pi/8
-               -pi/16 pi/16
+                  -pi/8 pi/8
         rangesQdot //-5      5
  	               //-5      5
                    // -5      5
                    //-5.2360 5.2360
                    //-5.2360 5.2360
-                 -5.2360 5.2360
-	mass	7.8384
+                   -5.2360 5.2360
+	mass	11.777
 	inertia
-		0.058836	0	0
-		0	0.064617	0
-		0	0	0.064617
-	com	-0.093546	-0.028679	0
+		0.1028	0	0
+		0	0.0878	0
+		0	0	0.0579
+
+    com	0.0707	0	0
 
 endsegment
 
@@ -42,7 +37,7 @@ segment pelvis_r
     parent pelvis
      // translations xz
      // rotations zy
-        RT 0 0 0 xyz 0.17 -0.07 0
+        RT 0 0 0 xyz 0.13 -0.07 0
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
 endsegment
 
@@ -50,25 +45,26 @@ segment pelvis_l
     parent pelvis
      // translations xz
      //rotations zy
-       RT 0 0 0 xyz 0.17 -0.07 0
+       RT 0 0 0 xyz 0.13 -0.07 0
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
 endsegment
+
 
 segment thorax
     parent pelvis
      // translations xz
     rotations yz
-    RT 0 0 0 xyz 0.04 0.13 0
+    RT 0 0 0 xyz 0 0.13 0
     ranges
         //-0.1 0.1
        -0.1 0.1
        -0.1 0.1
     mass	20
-    com	 -0.03 -0.32 0
+    com	 0.0591 0.1486 0
     inertia
-        1.4745	0.000000	0.000000
-        0.000000	0.7555	0.000000
-        0.000000	0.000000	1.4314
+        1.29841	0.000000	0.000000
+        0.000000	0.55245	0.000000
+        0.000000	0.000000	1.29841
 
 endsegment
 
@@ -88,7 +84,6 @@ segment hat_spine
     meshfile mesh_files/hat_spine.vtp
 endsegment
 
-
 segment clavicle_effector_right
     parent thorax_3D
     // rotations xyz  // This correspond to a YXZ sequence
@@ -98,11 +93,11 @@ segment clavicle_effector_right
     //    -0.15 0.3
     RTinmatrix 1
     RT
-        0.015299995323 -0.994472543667 -0.103812017405   0.006325
-        0.989298697571  0               0.14541602438    0.00693
-       -0.145099955643 -0.10499695182   0.983909164962   0.025465
-        0               0               0                1
-endsegment
+    0.015299995323 -0.994472543667 -0.103812017405   0.006325
+    0.989298697571  0               0.14541602438    0.00693
+    -0.145099955643 -0.10499695182   0.983909164962   0.025465
+    0               0               0                1
+    endsegment
 
 segment clavicle_right
     parent clavicle_effector_right
@@ -112,8 +107,12 @@ segment clavicle_right
        -0.994472543667 0              -0.10499695182    0
        -0.103812017405 0.14541602438   0.983909164962   0
         0              0               0                1
-    mass 0.2
-    com -0.0127205 0.00849541 0.0659846
+    mass 0.156
+    com -0.011096 0.00637 0.05417
+    inertia
+    0.00024	-0.000002	-0.00007
+    -0.000002	0.00026	0.00005
+    -0.00007	0.00005	0.00004
     meshfile mesh_files/clavicle.vtp
 endsegment
 
@@ -130,9 +129,14 @@ endsegment
 segment scapula_right
     parent scapula_effector_right
     RT 0.52 -0.52 0 xyz 0 0 0
-    mass 0.5
-    com -0.072 -0.039 -0.065
+    mass 0.70396
+    com -0.054694 -0.035.3 -0.04373
+    inertia
+    0.00124	0.00045	0.00041
+    0.00045	0.00115	0.00024
+    0.00041	0.00024	0.00137
     meshfile mesh_files/scapula.vtp
+
 endsegment
 
 segment humerus_right
@@ -215,7 +219,7 @@ segment radius_right
     meshfile mesh_files/radius.vtp
 endsegment
 
-//// Hand ////
+/// Hand ////
 
 // coco
 // Information about lunate segment
@@ -254,7 +258,7 @@ segment lunate_deviation
 
 			//-1.22173 1.22173
     mass 0.4575
-    com 0 -0.068095 0
+    com 0 -0.058095 0.02
     inertia
         0.000892 0 0
         0 0.000547 0
@@ -305,6 +309,7 @@ segment lunate
 	meshfile	Geometry/lunate.vtp
 	meshscale	1 1 1
 endsegment
+
 
 // Markers
 
@@ -574,6 +579,7 @@ segment hamate
 	meshfile	Geometry/hamate.vtp
 	meshscale	1 1 1
 endsegment
+
 
 // Markers
 
@@ -1049,7 +1055,7 @@ segment 2proxph_2mcp_flexion
 		0		0		0		1
 
 	mass 0.1
-	COM 0 -0.05 0
+	COM 0.015 -0.04 0.015
 	inertia
         0.000011946 0 0                            // matrice d inertie du segment pour bloquer les rotations
         0 0.000004121 0                            // affichage par rapport a l'origine de mon repere
@@ -1689,5 +1695,9 @@ segment distance_thorax_side_LA
     mesh 0.5056114196777344  -0.16104042053222656 0.07808863830566405
 endsegment
 */
+
+
+
+
 
 

@@ -317,7 +317,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # x_init[phase]["q"][9, 0] = 0.17
 
     if allDOF:
-        x_bounds[0]["q"][[0], 0] = -0.1  # todo put names
+        x_bounds[0]["q"][[0], 0] = -0.1  # waiting to see the BioMod file and visulization and then decide
         x_bounds[0]["q"][[2], 0] = 0.1
 
         x_bounds[4]["q"][[0], 2] = -0.1
