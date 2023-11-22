@@ -1,6 +1,6 @@
 import bioviz
 
-model_path = "Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
+model_path = "Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
 
 b = bioviz.Viz(
     model_path,
@@ -11,7 +11,7 @@ b = bioviz.Viz(
     show_mass_center=False,
     show_gravity_vector=True,
     show_global_ref_frame=False,
-    show_local_ref_frame=False,
+    show_local_ref_frame=True,
     show_markers=True,
     show_meshes=True,
 )

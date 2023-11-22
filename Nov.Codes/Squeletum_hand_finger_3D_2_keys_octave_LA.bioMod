@@ -12,7 +12,7 @@ endsegment
 
 segment pelvis
     parent ground
-       RT pi/2 0 0 xyz 0 0 0
+       RT pi/2 0 -0.05 xyz 0.04 0 0
        // RT (rotation-translation matrix): Set the initial orientation and position
        // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
 
@@ -21,7 +21,7 @@ segment pelvis
     rotations z
         rangesQ
             // Range of motion constraints (in radians)
-            -pi/8 pi/8
+            -pi/16 pi/16
             // Limited to -pi/8 to pi/8 radians to simulate realistic pelvic motion
 
     rangesQdot
@@ -70,6 +70,7 @@ segment pelvis_l
     // The mesh file 'l_pelvis_Rajagopal.vtp' is used to visually represent this segment
 
 endsegment
+
 segment thorax
     parent pelvis
     // The 'thorax' segment is a child of the 'pelvis' segment

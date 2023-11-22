@@ -159,8 +159,13 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         )
 
     # for phase in [1, 2]:
+        # objective_functions.add(
+        #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=[3, 7]
+        # )
+
+    # for phase in [3, 4]:
     #     objective_functions.add(
-    #         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger
+    #         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=[8,9]
     #     )
 
     # Constraints
@@ -211,7 +216,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="low_square",
     )
 
-    ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
+    ForceProfile = [30, 28, 24, 20, 16, 12, 8, 4, 0]
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
             constraints.add(
@@ -310,11 +315,22 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-        # x_init[phase]["q"][4, 0] = 0.08 #todo put names
-        # x_init[phase]["q"][5, 0] = 0.67
-        # x_init[phase]["q"][6, 0] = 1.11
-        # x_init[phase]["q"][7, 0] = 1.48
-        # x_init[phase]["q"][9, 0] = 0.17
+        if allDOF:
+
+            x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
+
+        else:
+
+            x_init[phase]["q"][1, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][2, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][3, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][4, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][6, 0] = 0.17  # MCP, Flexion and Extension
+
 
     if allDOF:
         x_bounds[0]["q"][[0], 0] = -0.1  # waiting to see the BioMod file and visulization and then decide
@@ -361,10 +377,10 @@ def main():
     pressed = True #False means Struck
 
     if allDOF:
-        saveName = "/home/alpha/Desktop/Pressed_with_Thorax.pckl"
+        saveName = "/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_with_Thorax.pckl"
         nq = 10
     else:
-        saveName = "/home/alpha/Desktop/Pressed_without_Thorax.pckl"
+        saveName = "/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_without_Thorax.pckl"
         nq = 7
 
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))

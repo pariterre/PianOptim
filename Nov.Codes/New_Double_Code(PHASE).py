@@ -12,11 +12,11 @@ def degrees(radians):
 
 
 # Load data_1
-with open("/home/alpha/Desktop/Pressed_with_Thorax.pckl",
+with open("/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_with_Thorax.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open("/home/alpha/Desktop/Pressed_without_Thorax.pckl",
+with open("/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_without_Thorax.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
@@ -108,58 +108,58 @@ Name = [
 #
 # Handle NaN values in tau arrays
 
-for i in range(-7, 0):
-    fig, axs = plt.subplots(nrows=3, ncols=1)
-
-    # Plot for q
-    axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-    axs[0].plot(
-        concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2
-    )
-
-    axs[0].set_title(Name[i])
-    axs[0].set_ylabel("θ (deg)")
-    axs[0].legend()
-
-    # Plot for qdot
-    axs[1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
-
-    axs[1].plot(
-        concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2
-    )
-
-    axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
-    axs[1].legend()
-
-    # Plot for tau
-    axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
-    axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", label=label_2)
-    axs[2].step(concatenated_array_time_s_2,
-                concatenated_array_tau_s_1[i, :]-concatenated_array_tau_s_2[i, :],
-                color="black", linestyle="--", label="diff")
-
-
-    axs[2].set_ylabel(r"$\tau$ (N/m)")
-    axs[2].set_xlabel("Time (sec)")
-    axs[2].legend()
-
-    # Set common properties for all subplots
-    for ax in axs:
-        ax.grid(True)
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
-        ax.yaxis.set_minor_locator(AutoMinorLocator())
-        ax.grid(which="minor", linestyle=":", linewidth="0.2", color="gray")
-
-        # Add vertical lines for specific points in data_1
-        for point in specific_points_s_1:
-            ax.axvline(x=point, color="k", linestyle=":")
-
-        for point in specific_points_s_2:
-            ax.axvline(x=point, color="k", linestyle=":")
-
-    plt.tight_layout()
-
-plt.show()
+# for i in range(-7,0):
+#     fig, axs = plt.subplots(nrows=3, ncols=1)
+#
+#     # Plot for q
+#     axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
+#     axs[0].plot(
+#         concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2
+#     )
+#
+#     axs[0].set_title(Name[i])
+#     axs[0].set_ylabel("θ (deg)")
+#     axs[0].legend()
+#
+#     # Plot for qdot
+#     axs[1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
+#
+#     axs[1].plot(
+#         concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2
+#     )
+#
+#     axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
+#     axs[1].legend()
+#
+#     # Plot for tau
+#     axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
+#     axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", label=label_2)
+#     axs[2].step(concatenated_array_time_s_2,
+#                 concatenated_array_tau_s_1[i, :]-concatenated_array_tau_s_2[i, :],
+#                 color="black", linestyle="--", label="diff")
+#
+#
+#     axs[2].set_ylabel(r"$\tau$ (N/m)")
+#     axs[2].set_xlabel("Time (sec)")
+#     axs[2].legend()
+#
+#     # Set common properties for all subplots
+#     for ax in axs:
+#         ax.grid(True)
+#         ax.xaxis.set_minor_locator(AutoMinorLocator())
+#         ax.yaxis.set_minor_locator(AutoMinorLocator())
+#         ax.grid(which="minor", linestyle=":", linewidth="0.2", color="gray")
+#
+#         # Add vertical lines for specific points in data_1
+#         for point in specific_points_s_1:
+#             ax.axvline(x=point, color="k", linestyle=":")
+#
+#         for point in specific_points_s_2:
+#             ax.axvline(x=point, color="k", linestyle=":")
+#
+#     plt.tight_layout()
+#
+# plt.show()
 
 # # Process and plot Force Values for data_1
 # Force_Values_V1 = np.array(data_1["Force_Values"][:, 2])
@@ -177,31 +177,30 @@ plt.show()
 # plt.tight_layout()
 # plt.show()
 
-# Plotting the data
-plt.figure(figsize=(10, 6))
-plt.step(concatenated_array_time_s_2, concatenated_array_tau_s_2[5,:], label="Wrist_Without", color="blue")
+#
+# area_s1_finger = sum(0.5 * (concatenated_array_tau_s_1[-1,:][i] + concatenated_array_tau_s_1[-1,:][i+1]) * (concatenated_array_time_s_1[i+1] - concatenated_array_time_s_1[i]) for i in range(len(concatenated_array_tau_s_1[-1,:])-1))
+# area_s1_wrist = sum(0.5 * (concatenated_array_tau_s_1[-2,:][i] + concatenated_array_tau_s_1[-2,:][i+1]) * (concatenated_array_time_s_1[i+1] - concatenated_array_time_s_1[i]) for i in range(len(concatenated_array_tau_s_1[-2,:])-1))
+#
+# print("Area under the curve_S1:", area_s1_finger+area_s1_wrist)
+#
+# area_s2_finger = sum(0.5 * (concatenated_array_tau_s_2[-1,:][i] + concatenated_array_tau_s_2[-1,:][i+1]) * (concatenated_array_time_s_2[i+1] - concatenated_array_time_s_2[i]) for i in range(len(concatenated_array_tau_s_2[-1,:])-1))
+# area_s2_wrist = sum(0.5 * (concatenated_array_tau_s_2[-2,:][i] + concatenated_array_tau_s_2[-2,:][i+1]) * (concatenated_array_time_s_2[i+1] - concatenated_array_time_s_2[i]) for i in range(len(concatenated_array_tau_s_2[-2,:])-1))
+#
+# print("Area under the curve_S2:", area_s2_finger+area_s2_wrist)
+#
+# I1=area_s1_finger+area_s1_wrist
+# I2=area_s2_finger+area_s2_wrist
+# print("Percent Difference:", abs(I1 - I2)*100/((I1+I2)/2))
 
-# Shading the area under the curve
-plt.fill_between(concatenated_array_time_s_2, concatenated_array_tau_s_2[5,:], color="skyblue", alpha=0.4)
 
-# Adding labels and title
-plt.xlabel("Time")
-plt.ylabel("Data Value")
-plt.title("Area Under the Curve")
-plt.legend()
+# Original code for I1 and I2
+I1 = (np.trapz(concatenated_array_tau_s_1[-1,:], x=concatenated_array_time_s_1) +
+      np.trapz(concatenated_array_tau_s_1[-2,:], x=concatenated_array_time_s_1))
 
-# Show the plot
-plt.show()
+I2 = (np.trapz(concatenated_array_tau_s_2[-1,:], x=concatenated_array_time_s_2) +
+      np.trapz(concatenated_array_tau_s_2[-2,:], x=concatenated_array_time_s_2))
 
-area = sum(0.5 * (concatenated_array_tau_s_2[5,:][i] + concatenated_array_tau_s_2[5,:][i+1]) * (concatenated_array_time_s_2[i+1] - concatenated_array_time_s_2[i]) for i in range(len(concatenated_array_tau_s_2[5,:])-1))
+print("With:", I1)
+print("without:", I2)
+print("Percent Difference:", abs(I1 - I2)*100/((I1+I2)/2))
 
-print("Area under the curve:", area)
-
-def calculate_area_under_curve_simps(time, tau):
-    # Check if both lists have the same length
-    if len(time) != len(tau):
-        raise ValueError("The length of time and tau lists must be the same.")
-
-    # Calculating the area using Simpson's rule
-    area = simps(tau, time)
-    return area
