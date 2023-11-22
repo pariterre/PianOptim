@@ -12,11 +12,11 @@ def degrees(radians):
 
 
 # Load data_1
-with open("/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_with_Thorax.pckl",
+with open("/home/alpha/Desktop/22Nov._Updated_BioMod/struck_with_Thorax.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open("/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_without_Thorax.pckl",
+with open("/home/alpha/Desktop/22Nov._Updated_BioMod/struck_without_Thorax.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
@@ -25,8 +25,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with"
-label_2 = "without"
+label_1 = "with_pressed"
+label_2 = "with_struck"
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
 array_q_s_1 = [data_1["states_no_intermediate"][i]["q"] for i in range(len(data_1["states_no_intermediate"]))]
@@ -106,7 +106,6 @@ Name = [
     "MCP, Flexion (+) and Extension (-)",
 ]
 #
-# Handle NaN values in tau arrays
 
 # for i in range(-7,0):
 #     fig, axs = plt.subplots(nrows=3, ncols=1)
