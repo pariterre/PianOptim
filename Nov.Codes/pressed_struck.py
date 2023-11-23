@@ -1,6 +1,7 @@
 """
- !! Les axes du modèle ne sont pas les mêmes que ceux généralement utilisés en biomécanique : x axe de flexion, y supination/pronation, z vertical
- ici on a : Y -» X , Z-» Y et X -» Z
+Note: The axes of the model are not the same as those generally used in biomechanics: X axis for flexion, Y for supination/pronation, Z vertical.
+Here we have: Y -> X, Z -> Y, and X -> Z
+
  """
 from casadi import MX, acos, dot, pi, Function
 import time
@@ -38,6 +39,7 @@ from bioptim import (
 
 
 # Joint indices in the biomechanical model:
+
 # 0| .Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
 # 1| . Thorax, Left (+) and Right (-) Rotation
 # 2| . Thorax, Flexion (-) and Extension (+)
@@ -199,10 +201,10 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         target=vel_push_array[0]
     )
 
-    for node in range(1, len(vel_push_array)): #todo: use Node.INTERMEDIATES
+    for node in range(1, len(vel_push_array)):
         constraints.add(
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
-            phase=1, node=node,
+            phase=1, node=Node.INTERMEDIATES, #INTERMEDIATES means all except first and last nodes
             marker_index=4, axes=Axis.Z,
             min_bound=-0.01, max_bound=0.01,
             target=vel_push_array[node],
@@ -221,8 +223,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         first_marker="finger_marker",
         second_marker="low_square",
     )
-
-
 
     ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
     for node in range(n_shooting[2]):
@@ -244,7 +244,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
         phase=3, node=Node.END,
@@ -261,6 +260,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
 
     for phase in all_phases:
+
         # To keep the index and the small finger above the bed key.
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
@@ -276,6 +276,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             min_bound=0,
             max_bound=np.inf,
         )
+
         # To keep the small finger on the right of the principal finger.
         constraints.add(
             custom_func_track_finger_5_on_the_right_of_principal_finger,
@@ -283,6 +284,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             min_bound=0.00001,
             max_bound=np.inf,
         )
+
         # To keep the hand/index perpendicular of the key piano all long the attack.
         constraints.add(
             custom_func_track_principal_finger_pi_in_two_global_axis,
@@ -302,6 +304,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             max_bound=np.pi / 24,
             quadratic=False,
         )
+
         # To block ulna rotation before the key pressing.
         constraints.add(
             ConstraintFcn.TRACK_STATE,
@@ -325,16 +328,18 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-        # x_init[phase]["q"][4, 0] = 0.08 #todo put names
-        # x_init[phase]["q"][5, 0] = 0.67
-        # x_init[phase]["q"][6, 0] = 1.11
-        # x_init[phase]["q"][7, 0] = 1.48
-        # x_init[phase]["q"][9, 0] = 0.17
+        x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+        x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
+        x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
+        x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
+        x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
 
     if allDOF:
-        x_bounds[0]["q"][[0], 0] = -0.1  # todo put names
-        x_bounds[0]["q"][[2], 0] = 0.1
 
+        x_bounds[0]["q"][[0], 0] = -0.1 # Set the initial node value for the pelvis in the first phase to -0.1.
+        # The first 0 in x_bounds[0] specifies the phase,
+        # the [[0], 0] targets the pelvis (index 0) at the initial node.
+        x_bounds[0]["q"][[2], 0] = 0.1
         x_bounds[4]["q"][[0], 2] = -0.1
         x_bounds[4]["q"][[2], 2] = 0.1
 
@@ -373,9 +378,10 @@ def main():
     """
     print(os.getcwd())
     polynomial_degree = 4
-    allDOF = False
+    allDOF = True
     pressed = True #False means Struck
-    dirName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/"
+    dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod"
+    
     if allDOF:
         saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
         nq = 10
