@@ -121,7 +121,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     else:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
         dof_wrist_finger = [5, 6]
-        all_dof_but_wrist_finger = [0, 1, 2, 4]
+        all_dof_but_wrist_finger = [0, 1, 2, 3, 4]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -204,7 +204,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for node in range(1, len(vel_push_array)):
         constraints.add(
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
-            phase=1, node=Node.INTERMEDIATES, #INTERMEDIATES means all except first and last nodes
+            phase=1, node=node,
             marker_index=4, axes=Axis.Z,
             min_bound=-0.01, max_bound=0.01,
             target=vel_push_array[node],
@@ -258,9 +258,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="high_square",
     )
 
-
     for phase in all_phases:
-
         # To keep the index and the small finger above the bed key.
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
@@ -321,6 +319,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # States: bounds and Initial guess
     x_init = InitialGuessList()
     x_bounds = BoundsList()
+
     for phase in all_phases:
         x_bounds.add("q", bounds=biorbd_model[phase].bounds_from_ranges("q"), phase=phase)
         x_bounds.add("qdot", bounds=biorbd_model[phase].bounds_from_ranges("qdot"), phase=phase)
@@ -328,11 +327,21 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-        x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
-        x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
-        x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
-        x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
-        x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
+        if allDOF:
+            x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
+
+
+        else:
+
+            x_init[phase]["q"][1, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][2, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][3, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][4, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][6, 0] = 0.17  # MCP, Flexion and Extension
 
     if allDOF:
 
@@ -378,15 +387,15 @@ def main():
     """
     print(os.getcwd())
     polynomial_degree = 4
-    allDOF = True
-    pressed = True #False means Struck
-    dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod"
-    
+    allDOF = False
+    pressed = False #False means Struck
+    dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod/"
+
     if allDOF:
         saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
         nq = 10
     else:
-        saveName = dirName + ("Pressed" if pressed else "Struck") +  "_without_Thorax.pckl"
+        saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
         nq = 7
 
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
@@ -400,7 +409,7 @@ def main():
 
     sol = ocp.solve(solv)
 
-    # # --- Download datas on a .pckl file --- #
+    # --- Download datas on a .pckl file --- #
     q_sym = MX.sym("q_sym", nq, 1)
     qdot_sym = MX.sym("qdot_sym", nq, 1)
     tau_sym = MX.sym("tau_sym", nq, 1)

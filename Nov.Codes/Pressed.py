@@ -374,7 +374,7 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = False
-    pressed = True #False means Struck
+    pressed = False #False means Struck
 
     if allDOF:
         saveName = "/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_with_Thorax.pckl"

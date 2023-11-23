@@ -8,21 +8,20 @@ version 4
 gravity 0 0 -9.81
 
 segment ground
+
 endsegment
 
 segment pelvis
     parent ground
-       RT pi/2 0 -0.05 xyz 0.04 0 0
+       RT pi/2 0 -0.05 xyz 0 0 0
        // RT (rotation-translation matrix): Set the initial orientation and position
        // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
-
-    // Translation parameters (xyz coordinates)
-    // Rotational parameters around the z-axis
+    // Rotational around the z-axis
     //rotations z
         rangesQ
             // Range of motion constraints (in radians)
             -pi/16 pi/16
-            // Limited to -pi/8 to pi/8 radians to simulate realistic pelvic motion
+            // Limited to -pi/16 to pi/16 radians to simulate realistic pelvic motion
 
     rangesQdot
         // Rate of change of the angle (angular velocity limits)
@@ -47,13 +46,11 @@ segment pelvis_r
     parent pelvis
     // This segment is a child of the 'pelvis' segment, representing the right side of the pelvis
 
-    // Setting the translation (x, z) and rotation (z, y) parameters
     RT 0 0 0 xyz 0.13 -0.07 0
     // RT (rotation-translation matrix): No initial rotation, translated to (0.13, -0.07, 0)
 
     // Assigning a mesh file for the graphical representation of the right pelvis
     meshfile mesh_files/r_pelvis_Rajagopal.vtp
-    // The mesh file 'r_pelvis_Rajagopal.vtp' is used to visually represent this segment
 
 endsegment
 
@@ -61,13 +58,11 @@ segment pelvis_l
     parent pelvis
     // This segment is a child of the 'pelvis' segment, representing the left side of the pelvis
 
-    // Setting the translation (x, z) and rotation (z, y) parameters
     RT 0 0 0 xyz 0.13 -0.07 0
     // RT (rotation-translation matrix): No initial rotation, translated to (0.13, -0.07, 0)
 
     // Assigning a mesh file for the graphical representation of the left pelvis
     meshfile mesh_files/l_pelvis_Rajagopal.vtp
-    // The mesh file 'l_pelvis_Rajagopal.vtp' is used to visually represent this segment
 
 endsegment
 
@@ -75,7 +70,7 @@ segment thorax
     parent pelvis
     // The 'thorax' segment is a child of the 'pelvis' segment
 
-    // Setting up translations (x, z) and rotations (y, z)
+    // Setting up rotations (y, z)
     //rotations yz
     RT 0 0 0 xyz 0 0.13 0
     // RT (rotation-translation matrix): No initial rotation, translated to (0, 0.13, 0)
@@ -84,9 +79,8 @@ segment thorax
     ranges
        -0.1 0.1
        -0.1 0.1
-    // Two ranges specified, each with limits -0.1 to 0.1 (likely in radians)
+    // Two ranges specified (y, z), each with limits -0.1 to 0.1
 
-    // Physical properties of the thorax segment
     mass 20
     // Mass of the thorax in kilograms
 
@@ -105,13 +99,11 @@ segment thorax_3D
     parent thorax
     // The 'thorax_3D' segment is a child of the 'thorax' segment
 
-    // Setting up translations (x, z) and rotations (z, y)
     RT 0 0 0 xyz 0.045 0.23 0
     // RT (rotation-translation matrix): No initial rotation, translated to (0.045, 0.23, 0)
 
     // Assigning a mesh file for the graphical representation of the thorax
     meshfile mesh_files/thorax.vtp
-    // The mesh file 'thorax.vtp' is used for visual representation of this segment
 
 endsegment
 
@@ -121,7 +113,6 @@ segment hat_spine
 
     // Assigning a mesh file for the graphical representation
     meshfile mesh_files/hat_spine.vtp
-    // The mesh file 'hat_spine.vtp' is used for the visual representation of this segment
 
 endsegment
 
@@ -198,9 +189,9 @@ segment scapula_right
 endsegment
 segment humerus_right
     parent scapula_right  // The right humerus is a child of the right scapula
-    RT 0 0 0 xyz -0.00955 -0.034 0.009  // Roto-translation matrix and coordinates of the origin in the global frame
+    RT 0 0 0 xyz -0.00955 -0.034 0.009  // Roto-translation matrix
 
-    rotations xyz  // Degrees of freedom in x, y, z axes
+    rotations xyz  // Degrees of freedom in x, y, z axes [Rotational]
 
     ranges  // Rotation angle limits for each degree of freedom
        -pi/2 0.1
@@ -209,7 +200,7 @@ segment humerus_right
 
     mass 2.0325  // Mass of the humerus segment in kilograms
     com 0 -0.164502 0  // Center of mass coordinates
-    inertia  // Inertia matrix to restrict rotations, relative to the segment's frame
+    inertia  // Inertia matrix
         0.011946 0 0
         0 0.004121 0
         0 0 0.013409
@@ -227,7 +218,7 @@ segment ulna_effector_right
        -0.0493668331166902 -0.0366447496814640 0.998108249694797 -0.0123
         0 0 0 1
 
-    rotations z  // Degree of freedom in the z-axis
+    rotations z  // Degree of freedom in the z-axis [Rotational]
     ranges  // Range of motion limit
         0.05 pi*3/4
 
@@ -287,9 +278,9 @@ segment radius_right
     meshfile mesh_files/radius.vtp  // Visual mesh file for the radius
 
 endsegment
-/// Hand ///
 
-// Lunate Bone Segments
+/// Hand ///
+// These segments form part of a detailed biomechanical model of the hand, specifying the positional and rotational parameters for each bone, along with their visual representation through mesh files.
 
 // Segment for the initial position of the lunate bone, connected to the right radius bone.
 segment lunate_parent_offset
@@ -747,7 +738,6 @@ segment firstmc_reset_axis
 endsegment
 
 
-   //True segment where are applied inertial values.
 // Segment
 segment firstmc
 	parent firstmc_reset_axis
@@ -755,10 +745,6 @@ segment firstmc
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about secondmc segment
-// Segment
 segment secondmc_parent_offset
 	parent capitate
 	RTinMatrix	0
@@ -766,8 +752,6 @@ segment secondmc_parent_offset
 endsegment
 
 
-   // Segment to cancel transformation bases effect.
-// Segment
 segment secondmc_reset_axis
 	parent secondmc_parent_offset
 	RTinMatrix	1
@@ -779,8 +763,6 @@ segment secondmc_reset_axis
 endsegment
 
 
-   //True segment where are applied inertial values.
-// Segment
 segment secondmc
 	parent secondmc_reset_axis
 	meshfile	Geometry/2mc.vtp
@@ -789,10 +771,6 @@ segment secondmc
 
 endsegment
 
-// Markers
-
-// Information about thirdmc segment
-// Segment
 segment thirdmc_parent_offset
 	parent capitate
 	RTinMatrix	0
@@ -800,8 +778,6 @@ segment thirdmc_parent_offset
 endsegment
 
 
-   // Segment to cancel transformation bases effect.
-// Segment
 segment thirdmc_reset_axis
 	parent thirdmc_parent_offset
 	RTinMatrix	1
@@ -813,27 +789,18 @@ segment thirdmc_reset_axis
 endsegment
 
 
-   //True segment where are applied inertial values.
-// Segment
 segment thirdmc
 	parent thirdmc_reset_axis
 	meshfile	Geometry/3mc.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about fourthmc segment
-// Segment
 segment fourthmc_parent_offset
 	parent capitate
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.012045999999999999 -0.040518999999999999 0.0035130000000000001
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment fourthmc_reset_axis
 	parent fourthmc_parent_offset
 	RTinMatrix	1
@@ -844,9 +811,6 @@ segment fourthmc_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment fourthmc
 	parent fourthmc_reset_axis
 	meshfile	Geometry/4mc.vtp
@@ -854,10 +818,6 @@ segment fourthmc
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about fifthmc segment
-// Segment
 segment fifthmc_parent_offset
 	parent capitate
 	RTinMatrix	0
@@ -865,8 +825,6 @@ segment fifthmc_parent_offset
 endsegment
 
 
-   // Segment to cancel transformation bases effect.
-// Segment
 segment fifthmc_reset_axis
 	parent fifthmc_parent_offset
 	RTinMatrix	1
@@ -878,26 +836,18 @@ segment fifthmc_reset_axis
 endsegment
 
 
-   //True segment where are applied inertial values.
-// Segment
 segment fifthmc
 	parent fifthmc_reset_axis
 	meshfile	Geometry/5mc.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about proximal_thumb segment
-// Segment
 segment proximal_thumb_parent_offset
 	parent firstmc
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.016500000000000001 -0.0292 -0.012699999999999999
 endsegment
 
-// Segments to define transformation axis.
-// Segment
 segment proximal_thumb_translation
 	parent proximal_thumb_parent_offset
 	RTinMatrix	1
@@ -908,7 +858,6 @@ segment proximal_thumb_translation
 		0		0		0		1
 endsegment
 
-// Segment
 segment proximal_thumb_rotation_0
 	parent proximal_thumb_translation
 	RTinMatrix	1
@@ -919,7 +868,6 @@ segment proximal_thumb_rotation_0
 		0		0		0		1
 endsegment
 
-// Segment
 segment proximal_thumb_rotation_1
 	parent proximal_thumb_rotation_0
 	RTinMatrix	1
@@ -930,7 +878,6 @@ segment proximal_thumb_rotation_1
 		0		0		0		1
 endsegment
 
-// Segment
 segment proximal_thumb_mp_flexion
 	parent proximal_thumb_rotation_1
 	RTinMatrix	1
@@ -941,9 +888,6 @@ segment proximal_thumb_mp_flexion
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment proximal_thumb_reset_axis
 	parent proximal_thumb_mp_flexion
 	RTinMatrix	1
@@ -954,27 +898,18 @@ segment proximal_thumb_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment proximal_thumb
 	parent proximal_thumb_reset_axis
 	meshfile	Geometry/thumbprox.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about distal_thumb segment
-// Segment
 segment distal_thumb_parent_offset
 	parent proximal_thumb
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.014 -0.025899999999999999 -0.0101
 endsegment
 
-// Segments to define transformation axis.
-// Segment
 segment distal_thumb_translation
 	parent distal_thumb_parent_offset
 	RTinMatrix	1
@@ -985,7 +920,6 @@ segment distal_thumb_translation
 		0		0		0		1
 endsegment
 
-// Segment
 segment distal_thumb_rotation_0
 	parent distal_thumb_translation
 	RTinMatrix	1
@@ -996,7 +930,6 @@ segment distal_thumb_rotation_0
 		0		0		0		1
 endsegment
 
-// Segment
 segment distal_thumb_rotation_1
 	parent distal_thumb_rotation_0
 	RTinMatrix	1
@@ -1007,7 +940,6 @@ segment distal_thumb_rotation_1
 		0		0		0		1
 endsegment
 
-// Segment
 segment distal_thumb_ip_flexion
 	parent distal_thumb_rotation_1
 	RTinMatrix	1
@@ -1018,9 +950,6 @@ segment distal_thumb_ip_flexion
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment distal_thumb_reset_axis
 	parent distal_thumb_ip_flexion
 	RTinMatrix	1
@@ -1031,27 +960,18 @@ segment distal_thumb_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment distal_thumb
 	parent distal_thumb_reset_axis
 	meshfile	Geometry/thumbdist.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 2proxph segment
-// Segment
 segment 2proxph_parent_offset
 	parent secondmc
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.0035010000000000002 -0.028243000000000001 0.00362
 endsegment
 
-// Segments to define transformation axis.
-// Segment
 segment 2proxph_translation
 	parent 2proxph_parent_offset
 	RTinMatrix	1
@@ -1061,6 +981,7 @@ segment 2proxph_translation
 		0.0		0.0		1.0		0
 		0		0		0		1
 endsegment
+
 // Segment for Flexion of the Proximal Phalanx of the Second Finger (2proxph)
 segment 2proxph_2mcp_flexion
     parent 2proxph_translation  // Setting the translation segment as the parent
@@ -1078,7 +999,7 @@ segment 2proxph_2mcp_flexion
         0 0 0.000013409
     rotations x  // Allowing rotation around the x-axis
     ranges -pi/4 pi/4  // Limiting the range of rotation
-    // meshcolor 0 0 1  // Optional color setting for the mesh (commented out)
+    // meshcolor 0 0 1  // Optional color setting for the mesh
 endsegment
 
 // Segment for Additional Rotation of the Proximal Phalanx of the Second Finger (2proxph)
@@ -1090,11 +1011,9 @@ segment 2proxph_rotation_1
         0.4073597926978526 0.8956396823256875 0.17857087874763944 0
         0.5566403002556166 -0.39850745636441276 0.7289330444926355 0
         0 0 0 1
-    //ranges -0.87266462599700001 1.20  // Optional range for additional rotation (commented out)
+    //ranges -0.87266462599700001 1.20
 endsegment
 
-// These segments specifically cater to the movements of the proximal phalanx of the second finger, allowing for realistic flexion and rotation within defined ranges, contributing to the accurate biomechanical modeling of the hand.
-// Segment
 segment 2proxph_2mcp_abduction
 	parent 2proxph_rotation_1
 	RTinMatrix	1
@@ -1105,9 +1024,6 @@ segment 2proxph_2mcp_abduction
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 2proxph_reset_axis
 	parent 2proxph_2mcp_abduction
 	RTinMatrix	1
@@ -1118,9 +1034,6 @@ segment 2proxph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 2proxph
 	parent 2proxph_reset_axis
 	meshfile	Geometry/2proxph.vtp
@@ -1129,18 +1042,12 @@ segment 2proxph
 
 endsegment
 
-// Markers
-
-// Information about 2midph segment
-// Segment
 segment 2midph_parent_offset
 	parent 2proxph
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.0075170000000000002 -0.041272999999999997 0.007326
 endsegment
 
-// Segments to define transformation axis.
-// Segment
 segment 2midph_translation
 	parent 2midph_parent_offset
 	RTinMatrix	1
@@ -1151,7 +1058,6 @@ segment 2midph_translation
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2midph_2pm_flexion
 	parent 2midph_translation
 	RTinMatrix	1
@@ -1162,7 +1068,6 @@ segment 2midph_2pm_flexion
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2midph_rotation_1
 	parent 2midph_2pm_flexion
 	RTinMatrix	1
@@ -1173,7 +1078,6 @@ segment 2midph_rotation_1
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2midph_rotation_2
 	parent 2midph_rotation_1
 	RTinMatrix	1
@@ -1184,9 +1088,6 @@ segment 2midph_rotation_2
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 2midph_reset_axis
 	parent 2midph_rotation_2
 	RTinMatrix	1
@@ -1197,27 +1098,18 @@ segment 2midph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 2midph
 	parent 2midph_reset_axis
 	meshfile	Geometry/2midph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 2distph segment
-// Segment
 segment 2distph_parent_offset
 	parent 2midph
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.003333 -0.024888 0.0012199999999999999
 endsegment
 
-// Segments to define transformation axis.
-// Segment
 segment 2distph_translation
 	parent 2distph_parent_offset
 	RTinMatrix	1
@@ -1228,7 +1120,6 @@ segment 2distph_translation
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2distph_2md_flexion
 	parent 2distph_translation
 	RTinMatrix	1
@@ -1239,7 +1130,6 @@ segment 2distph_2md_flexion
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2distph_rotation_1
 	parent 2distph_2md_flexion
 	RTinMatrix	1
@@ -1250,7 +1140,6 @@ segment 2distph_rotation_1
 		0		0		0		1
 endsegment
 
-// Segment
 segment 2distph_rotation_2
 	parent 2distph_rotation_1
 	RTinMatrix	1
@@ -1261,9 +1150,6 @@ segment 2distph_rotation_2
 		0		0		0		1
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 2distph_reset_axis
 	parent 2distph_rotation_2
 	RTinMatrix	1
@@ -1275,28 +1161,18 @@ segment 2distph_reset_axis
 
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 2distph
 	parent 2distph_reset_axis
 	meshfile	Geometry/2distph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 3proxph segment
-// Segment
 segment 3proxph_parent_offset
 	parent thirdmc
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.00024000000000000001 -0.026290000000000001 0.0017780000000000001
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 3proxph_reset_axis
 	parent 3proxph_parent_offset
 	RTinMatrix	1
@@ -1307,28 +1183,18 @@ segment 3proxph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 3proxph
 	parent 3proxph_reset_axis
 	meshfile	Geometry/3proxph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 3midph segment
-// Segment
 segment 3midph_parent_offset
 	parent 3proxph
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.00165 -0.044211 0.0062300000000000003
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 3midph_reset_axis
 	parent 3midph_parent_offset
 	RTinMatrix	1
@@ -1339,28 +1205,18 @@ segment 3midph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 3midph
 	parent 3midph_reset_axis
 	meshfile	Geometry/3midph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 3distph segment
-// Segment
 segment 3distph_parent_offset
 	parent 3midph
 	RTinMatrix	0
 	RT	0 0 0	xyz	0.0013649999999999999 -0.029047 0.001954
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 3distph_reset_axis
 	parent 3distph_parent_offset
 	RTinMatrix	1
@@ -1371,28 +1227,18 @@ segment 3distph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 3distph
 	parent 3distph_reset_axis
 	meshfile	Geometry/3distph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 4proxph segment
-// Segment
 segment 4proxph_parent_offset
 	parent fourthmc
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.00183 -0.023689000000000002 -0.000173
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 4proxph_reset_axis
 	parent 4proxph_parent_offset
 	RTinMatrix	1
@@ -1403,28 +1249,18 @@ segment 4proxph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 4proxph
 	parent 4proxph_reset_axis
 	meshfile	Geometry/4proxph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 4midph segment
-// Segment
 segment 4midph_parent_offset
 	parent 4proxph
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.0035279999999999999 -0.040254999999999999 0.0013450000000000001
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 4midph_reset_axis
 	parent 4midph_parent_offset
 	RTinMatrix	1
@@ -1435,28 +1271,18 @@ segment 4midph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 4midph
 	parent 4midph_reset_axis
 	meshfile	Geometry/4midph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 4distph segment
-// Segment
 segment 4distph_parent_offset
 	parent 4midph
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.002317 -0.024788999999999999 0.00056300000000000002
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 4distph_reset_axis
 	parent 4distph_parent_offset
 	RTinMatrix	1
@@ -1467,28 +1293,18 @@ segment 4distph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 4distph
 	parent 4distph_reset_axis
 	meshfile	Geometry/4distph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 5proxph segment
-// Segment
 segment 5proxph_parent_offset
 	parent fifthmc
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.0015969999999999999 -0.021430999999999999 -0.0014959999999999999
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 5proxph_reset_axis
 	parent 5proxph_parent_offset
 	RTinMatrix	1
@@ -1499,9 +1315,6 @@ segment 5proxph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 5proxph
 	parent 5proxph_reset_axis
 	RTinMatrix	0
@@ -1516,19 +1329,12 @@ segment 5proxph
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 5midph segment
-// Segment
 segment 5midph_parent_offset
 	parent 5proxph
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.0052789999999999998 -0.035562999999999997 -0.002879
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 5midph_reset_axis
 	parent 5midph_parent_offset
 	RTinMatrix	1
@@ -1539,28 +1345,18 @@ segment 5midph_reset_axis
 		0		0		0		1
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 5midph
 	parent 5midph_reset_axis
 	meshfile	Geometry/5midph.vtp
 	meshscale	1 1 1
 endsegment
 
-// Markers
-
-// Information about 5distph segment
-// Segment
 segment 5distph_parent_offset
 	parent 5midph
 	RTinMatrix	0
 	RT	0 0 0	xyz	-0.0028709999999999999 -0.020677000000000001 -0.0022430000000000002
 endsegment
 
-
-   // Segment to cancel transformation bases effect.
-// Segment
 segment 5distph_reset_axis
 	parent 5distph_parent_offset
 	RTinMatrix	1
@@ -1572,14 +1368,12 @@ segment 5distph_reset_axis
 
 endsegment
 
-
-   //True segment where are applied inertial values.
-// Segment
 segment 5distph
 	parent 5distph_reset_axis
 	meshfile	Geometry/5distph.vtp
 	meshscale	1 1 1
 endsegment
+
 ////// Finger Contact and Marker Definitions //////
 
 // Marker for the Thumb
@@ -1625,11 +1419,10 @@ contact contact_finger
     axis xyz  // Specifying the axis for the contact point
 endcontact
 
-// These markers and contact points are crucial for simulating interactions of the fingers with objects in the biomechanical model, providing precise locations for collision detection and response calculations.
+// These markers and contact points are crucial for simulating interactions of the fingers with piano in the biomechanical model, providing precise locations for contact.
 
 ////// Piano Configuration //////
 
-// Piano Configuration Details:
 // Start space: 0.01
 // First key width: 0.023
 // For 6 keys and 7 spaces between keys: 6*0.023 + 7*0.001
@@ -1639,88 +1432,85 @@ endcontact
 // Key 1 Configuration
 segment square
     // Optional mesh file for the piano assembly
-    // The mesh rotation and scale parameters are commented out for custom adjustments
 
     // These mesh coordinates define the first key's position and dimensions
     // The piano is shifted by 5 cm to adjust its position in the simulation
-    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
-       mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.17254042053222657 0.07808863830566405-0.01
+       mesh 0.5056114196777344+0.02 -0.17254042053222657 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.17254042053222657 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.14954042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.14954042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.14954042053222655 0.07808863830566405-0.01
 
-    // Additional mesh points for completing the key's shape (commented for clarity)
 endsegment
 
 
 // Key 2 Configuration
 segment square2
     // Similar to Key 1, these mesh coordinates define the position and dimensions of the second key
-    // Ensures proper alignment and spacing relative to the first key
-    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01-0.01
-    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.31754042053222653 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.31754042053222653 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.31754042053222653 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.34054042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.34054042053222655 0.07808863830566405-0.01-0.01
+    mesh 0.5056114196777344+0.02 -0.34054042053222655 0.07808863830566405-0.01
 endsegment
 
 // Piano Structural Framework
-// These segments define the piano's external and internal structure
+// These segments define the piano's structure
 segment line1
     // Mesh points to outline the main frame of the piano
-    mesh 0.5056114196777344+0.06 0.45395957946777343 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.06 -0.14954042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 0.45395957946777343 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.14954042053222655 0.07808863830566405-0.01
 endsegment
 
 segment line2
-    // Additional mesh points for the internal structure of the piano
-    mesh 0.5056114196777344+0.06 -0.17254042053222657 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.06 -0.31754042053222653 0.07808863830566405-0.01
+    // Additional mesh points for the piano structure
+    mesh 0.5056114196777344+0.02 -0.17254042053222657 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.31754042053222653 0.07808863830566405-0.01
 endsegment
 
 segment line3
     // Final mesh points to complete the piano's structural framework
-    mesh 0.5056114196777344+0.06 -0.34054042053222655 0.07808863830566405-0.01
-    mesh 0.5056114196777344+0.06 -0.7760404205322265 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.34054042053222655 0.07808863830566405-0.01
+    mesh 0.5056114196777344+0.02 -0.7760404205322265 0.07808863830566405-0.01
 endsegment
 
 // Marker Configuration for Simulating Piano Key Presses //
 
 // Marker for the top surface of Key 1
 marker high_square
-    parent ground  // Anchor point set relative to the ground for stability
-    position 0.5056114196777344+0.06 -0.16104042053222656 0.07808863830566405-0.01
+    parent ground
+    position 0.5056114196777344+0.02 -0.16104042053222656 0.07808863830566405-0.01
     // This marker represents the upper surface of the first piano key
 endmarker
 
 // Marker for simulating the upward motion of a key
 marker phase_3_upward
-    parent ground  // Anchor point relative to the ground
-    position 0.6056114196777344+0.06 -0.16104042053222656 0.07808863830566405+0.14
+    parent ground
+    position 0.6056114196777344+0.02 -0.16104042053222656 0.07808863830566405+0.14
     // Positioned to simulate the upward phase of a key press
 endmarker
 
 // Marker for the lower surface of Key 1
 marker low_square
     parent ground
-    position 0.5056114196777344+0.06 -0.16104042053222656 0.07808863830566405-0.01-0.01
+    position 0.5056114196777344+0.02 -0.16104042053222656 0.07808863830566405-0.01-0.01
     // Represents the lower surface of the first key, indicating a pressed state
 endmarker
 
 // Marker for the top surface of Key 2
 marker high_square2
     parent ground
-    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01
+    position 0.5056114196777344+0.02 -0.3290404205322266 0.07808863830566405-0.01
     // This marker is for the upper surface of the second piano key
 endmarker
 
 // Marker for the lower surface of Key 2
 marker low_square2
     parent ground
-    position 0.5056114196777344+0.06 -0.3290404205322266 0.07808863830566405-0.01-0.01
-    // Indicates the pressed state of the second key
+    position 0.5056114196777344+0.02 -0.3290404205322266 0.07808863830566405-0.01-0.01
+    // Indicates the pressed state (Key descend, not pressed or struck touch) of the second key
 endmarker
 
 /*
@@ -1730,14 +1520,21 @@ endmarker
 // Marker for the pianist's thorax side
 marker thorax_side
     parent ground  // Set relative to the ground
-    position 0.048954925537109375 0.009166168212890625-0.145 0.18353102111816406
-    // Assists in correctly positioning the pianist's upper body
+    position 0.008954925537109375 0.009166168212890625-0.145 0.18353102111816406
+
 endmarker
 
 // Segment to visualize the distance between the pianist's thorax and the piano
 segment distance_thorax_side_LA
-    mesh 0.048954925537109375 0.009166168212890625-0.145 0.18353102111816406
-    mesh 0.5056114196777344 -0.16104042053222656 0.07808863830566405
+    mesh 0.008954925537109375 0.009166168212890625-0.145 0.18353102111816406
+    mesh 0.1056114196777344 -0.16104042053222656 0.07808863830566405
     // Helps in adjusting the pianist's position for a realistic simulation
 endsegment
 */
+
+
+
+
+
+
+
