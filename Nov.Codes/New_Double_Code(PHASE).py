@@ -9,8 +9,8 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/Users/mickaelbegon/Library/CloudStorage/Dropbox/1_EN_COURS/FALL2023/"
-typeTouch = "Struck" #"Pressed" #
+dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod/"
+typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",
@@ -28,6 +28,7 @@ specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(dat
 # Labels for data_1 and data_2
 label_1 = "with"
 label_2 = "without"
+
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
 array_q_s_1 = [data_1["states_no_intermediate"][i]["q"] for i in range(len(data_1["states_no_intermediate"]))]
@@ -117,6 +118,7 @@ for i in range(-7, 0):
     axs[0].plot(
         concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2
     )
+    axs[0].fill_betweenx(axs[0].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
 
     axs[0].set_title(Name[i])
     axs[0].set_ylabel("θ (deg)")
@@ -128,6 +130,7 @@ for i in range(-7, 0):
     axs[1].plot(
         concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2
     )
+    axs[1].fill_betweenx(axs[1].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
 
     axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
     axs[1].legend()
@@ -139,7 +142,7 @@ for i in range(-7, 0):
                 concatenated_array_tau_s_1[i, :]-concatenated_array_tau_s_2[i, :],
                 color="black", linestyle="--", label="diff")
 
-
+    axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[2].set_ylabel(r"$\tau$ (N/m)")
     axs[2].set_xlabel("Time (sec)")
     axs[2].legend()
