@@ -327,13 +327,18 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
+        # This section targets the angular velocity bounds for various degrees of freedom (DOFs) in a biomechanical model,
+        # based on experimental datasets.
+        # These bounds are crucial for accurately simulating the kinematics of pianist movement and are aligned with
+        # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
+        # and +/- 15 rad/s for the Wrist and Finger.
+
         if allDOF:
             x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
             x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
             x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
             x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
             x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
-
 
         else:
 
@@ -343,14 +348,37 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             x_init[phase]["q"][4, 0] = 1.48  # Elbow, Pronation and Supination
             x_init[phase]["q"][6, 0] = 0.17  # MCP, Flexion and Extension
 
+    # Set the initial node value for the pelvis in the first phase to -0.1.
+    # The first 0 in x_bounds[0] specifies the phase,
+    # the [[0], 0] targets the pelvis (index 0) at the initial node.
+
     if allDOF:
 
-        x_bounds[0]["q"][[0], 0] = -0.1 # Set the initial node value for the pelvis in the first phase to -0.1.
-        # The first 0 in x_bounds[0] specifies the phase,
-        # the [[0], 0] targets the pelvis (index 0) at the initial node.
-        x_bounds[0]["q"][[2], 0] = 0.1
-        x_bounds[4]["q"][[0], 2] = -0.1
-        x_bounds[4]["q"][[2], 2] = 0.1
+        x_bounds[0]["q"][[0], 0] = 0.1
+        x_bounds[0]["q"][[2], 0] = -0.1
+        x_bounds[4]["q"][[0], 2] = 0.1
+        x_bounds[4]["q"][[2], 2] = -0.1
+
+    if allDOF:
+        for phase in all_phases:
+            x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
+            x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
+
+            x_bounds[phase]["qdot"].min[[6, 7], :] = -4
+            x_bounds[phase]["qdot"].max[[6, 7], :] = 4
+
+            x_bounds[phase]["qdot"].min[[8, 9], :] = -15
+            x_bounds[phase]["qdot"].max[[8, 9], :] = 15
+    else:
+        for phase in all_phases:
+            x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -170
+            x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 170
+
+            x_bounds[phase]["qdot"].min[[3, 4], :] = -230
+            x_bounds[phase]["qdot"].max[[3, 4], :] = 230
+
+            x_bounds[phase]["qdot"].min[[5, 6], :] = -800
+            x_bounds[phase]["qdot"].max[[5, 6], :] = 800
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -387,12 +415,12 @@ def main():
     """
     print(os.getcwd())
     polynomial_degree = 4
-    allDOF = False
+    allDOF = True
     pressed = False #False means Struck
     dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_2.pckl"
         nq = 10
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
