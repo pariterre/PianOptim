@@ -13,7 +13,7 @@ endsegment
 
 segment pelvis
     parent ground
-       RT pi/2 0 -0.05 xyz 0 0 0
+       RT pi/2 0 -0.1 xyz 0 0 0
        // RT (rotation-translation matrix): Set the initial orientation and position
        // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
     // Rotational around the z-axis
@@ -22,11 +22,6 @@ segment pelvis
             // Range of motion constraints (in radians)
             -pi/16 pi/16
             // Limited to -pi/16 to pi/16 radians to simulate realistic pelvic motion
-
-    rangesQdot
-        // Rate of change of the angle (angular velocity limits)
-        -5.2360 5.2360
-        // Set to -5.2360 to 5.2360 rad/s, representing realistic speed of pelvic rotation
 
     mass 11.777
     // Mass of the pelvis segment in kilograms

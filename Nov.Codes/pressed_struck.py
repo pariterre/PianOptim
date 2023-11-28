@@ -111,17 +111,16 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 
     return output_casadi
 
-
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
         dof_wrist_finger = [8, 9]
-        all_dof_but_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7]
 
     else:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
         dof_wrist_finger = [5, 6]
-        all_dof_but_wrist_finger = [0, 1, 2, 3, 4]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -152,23 +151,18 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=4)
 
     # Objectives
-    # Minimize Torques generated into articulations
+    # Minimize Torques
     objective_functions = ObjectiveList()
     for phase in all_phases:
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_but_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_but_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
-
-    # for phase in [1, 2]:
-    #     objective_functions.add(
-    #         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger
-    #     )
 
     # Constraints
     constraints = ConstraintList()
@@ -224,7 +218,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="low_square",
     )
 
-    ForceProfile = [30, 26, 24, 20, 16, 12, 8, 4, 0]
+    ForceProfile = [30, 28, 24, 20, 16, 12, 8, 4, 0]
+
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
             constraints.add(
@@ -308,7 +303,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_STATE,
             phase=phase, node=Node.ALL,
             key="qdot",
-            index=all_dof_but_wrist_finger[-1],  # prosupination
+            index=all_dof_except_wrist_finger[-1],  # prosupination
             min_bound=-1, max_bound=1,
             quadratic=False,
         )
@@ -327,11 +322,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         x_init.add("q", [0] * biorbd_model[phase].nb_q, phase=phase)
         x_init.add("qdot", [0] * biorbd_model[phase].nb_q, phase=phase)
 
-        # This section targets the angular velocity bounds for various degrees of freedom (DOFs) in a biomechanical model,
-        # based on experimental datasets.
-        # These bounds are crucial for accurately simulating the kinematics of pianist movement and are aligned with
-        # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
-        # and +/- 15 rad/s for the Wrist and Finger.
 
         if allDOF:
             x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
@@ -348,19 +338,14 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             x_init[phase]["q"][4, 0] = 1.48  # Elbow, Pronation and Supination
             x_init[phase]["q"][6, 0] = 0.17  # MCP, Flexion and Extension
 
-    # Set the initial node value for the pelvis in the first phase to -0.1.
-    # The first 0 in x_bounds[0] specifies the phase,
-    # the [[0], 0] targets the pelvis (index 0) at the initial node.
+        # This section targets the angular velocity bounds for various degrees of freedom (DOFs) in a biomechanical model,
+        # based on experimental datasets.
+        # These bounds are crucial for accurately simulating the kinematics of pianist movement and are aligned with
+        # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
+        # and +/- 15 rad/s for the Wrist and Finger.
 
-    if allDOF:
+        if allDOF:
 
-        x_bounds[0]["q"][[0], 0] = 0.1
-        x_bounds[0]["q"][[2], 0] = -0.1
-        x_bounds[4]["q"][[0], 2] = 0.1
-        x_bounds[4]["q"][[2], 2] = -0.1
-
-    if allDOF:
-        for phase in all_phases:
             x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
             x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
 
@@ -369,16 +354,28 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
             x_bounds[phase]["qdot"].min[[8, 9], :] = -15
             x_bounds[phase]["qdot"].max[[8, 9], :] = 15
-    else:
-        for phase in all_phases:
-            x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -170
-            x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 170
 
-            x_bounds[phase]["qdot"].min[[3, 4], :] = -230
-            x_bounds[phase]["qdot"].max[[3, 4], :] = 230
+        else:
 
-            x_bounds[phase]["qdot"].min[[5, 6], :] = -800
-            x_bounds[phase]["qdot"].max[[5, 6], :] = 800
+            x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -3
+            x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 3
+
+            x_bounds[phase]["qdot"].min[[3, 4], :] = -4
+            x_bounds[phase]["qdot"].max[[3, 4], :] = 4
+
+            x_bounds[phase]["qdot"].min[[5, 6], :] = -15
+            x_bounds[phase]["qdot"].max[[5, 6], :] = 15
+
+    # Set the initial node value for the pelvis in the first phase to -0.1.
+    # The first 0 in x_bounds[0] specifies the phase,
+    # the [[0], 0] targets the pelvis (index 0) at the initial node.
+
+    if allDOF:
+
+        x_bounds[0]["q"][[0], 0] = -0.1
+        x_bounds[0]["q"][[2], 0] = -0.1
+        x_bounds[4]["q"][[0], 2] = 0.1
+        x_bounds[4]["q"][[2], 2] = 0.1
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -416,11 +413,11 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = True
-    pressed = False #False means Struck
-    dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod/"
+    pressed = True #False means Struck
+    dirName = "/home/alpha/Desktop/25Nov._Updated_OCP_Qdot_Ranges/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_2.pckl"
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
         nq = 10
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
