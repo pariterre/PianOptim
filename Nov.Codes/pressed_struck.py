@@ -372,9 +372,10 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if allDOF:
 
-        x_bounds[0]["q"][[0], 0] = -0.1
-        x_bounds[0]["q"][[2], 0] = -0.1
-        x_bounds[4]["q"][[0], 2] = 0.1
+        # x_bounds[0]["q"][[0], 0] = -0.1
+        # x_bounds[0]["q"][[2], 0] = 0.1
+
+        x_bounds[4]["q"][[0], 2] = -0.1
         x_bounds[4]["q"][[2], 2] = 0.1
 
     # Define control path constraint and initial guess

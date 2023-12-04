@@ -13,11 +13,11 @@ endsegment
 
 segment pelvis
     parent ground
-       RT pi/2 0 -0.1 xyz 0 0 0
+       RT pi/2 0 -0.05 xyz 0 0 0
        // RT (rotation-translation matrix): Set the initial orientation and position
        // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
     // Rotational around the z-axis
-    //rotations z
+   // rotations z
         rangesQ
             // Range of motion constraints (in radians)
             -pi/16 pi/16
@@ -66,7 +66,7 @@ segment thorax
     // The 'thorax' segment is a child of the 'pelvis' segment
 
     // Setting up rotations (y, z)
-    //rotations yz
+   // rotations yz
     RT 0 0 0 xyz 0 0.13 0
     // RT (rotation-translation matrix): No initial rotation, translated to (0, 0.13, 0)
 
@@ -1483,7 +1483,7 @@ endmarker
 // Marker for simulating the upward motion of a key
 marker phase_3_upward
     parent ground
-    position 0.6056114196777344+0.02 -0.16104042053222656 0.07808863830566405+0.14
+    position 0.5456114196777344+0.02 -0.16104042053222656 0.07808863830566405+0.11
     // Positioned to simulate the upward phase of a key press
 endmarker
 
@@ -1526,10 +1526,3 @@ segment distance_thorax_side_LA
     // Helps in adjusting the pianist's position for a realistic simulation
 endsegment
 */
-
-
-
-
-
-
-
