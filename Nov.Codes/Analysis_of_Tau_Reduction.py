@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/25Nov._Updated_OCP_Qdot_Ranges/"
+dirName = "/home/alpha/Desktop/5Dec/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
@@ -105,6 +105,8 @@ for i in range(0,5):
 	      np.trapz(array_tau_s_2[i][-2, :]**2, x=time_arrays_2[i]))
 
 	percentage_diff[i]=((I1[i]-I2[i])/I1[i]*100)
+
+
 
 # Transposing data for plotting
 phases = np.arange(len(I1))  # Assuming each row is a different phase

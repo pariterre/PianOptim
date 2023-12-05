@@ -9,8 +9,8 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/22Nov._Updated_BioMod/"
-typeTouch = "Pressed" #"Struck" #
+dirName = "/home/alpha/Desktop/5Dec/"
+typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",

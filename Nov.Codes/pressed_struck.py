@@ -32,12 +32,6 @@ from bioptim import (
     Axis,
 )
 
-#
-# def minimize_difference(all_pn: PenaltyNode):
-#     return all_pn[0].nlp.controls.cx_end - all_pn[1].nlp.controls.cx
-#
-
-
 # Joint indices in the biomechanical model:
 
 # 0| .Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
@@ -137,6 +131,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         vel_push_array = [0.0, -0.114, -0.181, -0.270, -0.347, -0.291, -0.100, ]
         n_shooting = (30, 7, 9, 10, 10)
         phase_time = (0.3, 0.044, 0.051, 0.15, 0.15)
+
     else:
         vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
         n_shooting = (30, 6, 9, 10, 10)
@@ -203,13 +198,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             min_bound=-0.01, max_bound=0.01,
             target=vel_push_array[node],
         )
-
-    # No finger's tip velocity at the end of phase 1
-    constraints.add(
-        ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1, node=Node.END,
-        marker_index=4,
-    )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -344,6 +332,17 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
         # and +/- 15 rad/s for the Wrist and Finger.
 
+        # 0| .Pelvic Tilt, Anterior (-) and Posterior (+) Rotation
+        # 1| . Thorax, Left (+) and Right (-) Rotation
+        # 2| . Thorax, Flexion (-) and Extension (+)
+        # 3|0. Right Shoulder, Abduction (-) and Adduction (+)
+        # 4|1. Right Shoulder, Internal (+) and External (-) Rotation
+        # 5|2. Right Shoulder, Flexion (+) and Extension (-)
+        # 6|3. Elbow, Flexion (+) and Extension (-)
+        # 7|4. Elbow, Pronation (+) and Supination (-)
+        # 8|5. Wrist, Flexion (-) and Extension (+)
+        # 9|6. MCP, Flexion (+) and Extension (-)
+
         if allDOF:
 
             x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
@@ -372,8 +371,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if allDOF:
 
-        # x_bounds[0]["q"][[0], 0] = -0.1
-        # x_bounds[0]["q"][[2], 0] = 0.1
+        x_bounds[0]["q"][[0], 0] = -0.1
+        x_bounds[0]["q"][[2], 0] = 0.1
 
         x_bounds[4]["q"][[0], 2] = -0.1
         x_bounds[4]["q"][[2], 2] = 0.1
@@ -414,8 +413,8 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = True
-    pressed = True #False means Struck
-    dirName = "/home/alpha/Desktop/25Nov._Updated_OCP_Qdot_Ranges/"
+    pressed = False  #False means Struck
+    dirName = "/home/alpha/Desktop/5Dec/"
 
     if allDOF:
         saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
@@ -457,7 +456,6 @@ def main():
             sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
         )
     F_array = np.array(F)
-
 
     data = dict(
         states=sol.states,

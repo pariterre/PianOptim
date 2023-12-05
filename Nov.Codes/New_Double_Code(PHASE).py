@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/25Nov._Updated_OCP_Qdot_Ranges/"
+dirName = "/home/alpha/Desktop/5Dec/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
