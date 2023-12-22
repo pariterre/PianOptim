@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-with open("/home/alpha/Desktop/5Dec/Struck_with_Thorax_2.pckl", "rb") as file:
+with open("/home/alpha/Desktop/5Dec/Struck_with_Thorax.pckl", "rb") as file:
     new_dict = pickle.load(file)
 
 biorbd_model_path: str = "Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
