@@ -13,7 +13,7 @@ dirName = "/home/alpha/Desktop/5Dec/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
-with open(dirName + typeTouch + "_with_Thorax.pckl",
+with open(dirName + typeTouch + "_with_Thorax_2.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 

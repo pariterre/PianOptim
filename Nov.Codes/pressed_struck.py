@@ -92,8 +92,6 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
     principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
     y = MX.zeros(4)
     y[:4] = np.array([0, 1, 0, 1])
-    # @ x : pour avoir l'orientation du vecteur x du jcs local exprimé dans le global
-    # @ produit matriciel
     principal_finger_y = principal_finger_axis @ y
     principal_finger_y = principal_finger_y[:3, :]
 
@@ -108,8 +106,8 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
-        dof_wrist_finger = [8, 9]
-        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7]
+        dof_wrist_finger = [9, 10]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     else:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
@@ -312,11 +310,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
 
         if allDOF:
-            x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
-            x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
-            x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
-            x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
-            x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
+            x_init[phase]["q"][5, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][6, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][7, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][8, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][10, 0] = 0.17  # MCP, Flexion and Extension
 
         else:
 
@@ -345,14 +343,14 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
         if allDOF:
 
-            x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
-            x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
+            x_bounds[phase]["qdot"].min[[1, 2, 3, 4, 5, 6], :] = -3
+            x_bounds[phase]["qdot"].max[[1, 2, 3, 4, 5, 6], :] = 3
 
-            x_bounds[phase]["qdot"].min[[6, 7], :] = -4
-            x_bounds[phase]["qdot"].max[[6, 7], :] = 4
+            x_bounds[phase]["qdot"].min[[7, 8], :] = -4
+            x_bounds[phase]["qdot"].max[[7, 8], :] = 4
 
-            x_bounds[phase]["qdot"].min[[8, 9], :] = -15
-            x_bounds[phase]["qdot"].max[[8, 9], :] = 15
+            x_bounds[phase]["qdot"].min[[9, 10], :] = -15
+            x_bounds[phase]["qdot"].max[[9, 10], :] = 15
 
         else:
 
@@ -371,11 +369,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if allDOF:
 
-        x_bounds[0]["q"][[0], 0] = -0.1
-        x_bounds[0]["q"][[2], 0] = 0.1
+        x_bounds[0]["q"][[1], 0] = -0.1
+        x_bounds[0]["q"][[3], 0] = 0.1
 
-        x_bounds[4]["q"][[0], 2] = -0.1
-        x_bounds[4]["q"][[2], 2] = 0.1
+        x_bounds[4]["q"][[1], 2] = -0.1
+        x_bounds[4]["q"][[3], 2] = 0.1
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -417,8 +415,8 @@ def main():
     dirName = "/home/alpha/Desktop/5Dec/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
-        nq = 10
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_2.pckl"
+        nq = 11
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
         nq = 7
@@ -435,27 +433,27 @@ def main():
     sol = ocp.solve(solv)
 
     # --- Download datas on a .pckl file --- #
-    q_sym = MX.sym("q_sym", nq, 1)
-    qdot_sym = MX.sym("qdot_sym", nq, 1)
-    tau_sym = MX.sym("tau_sym", nq, 1)
-
-    phase = 2
-    Contact_Force = Function(
-        "Contact_Force",
-        [q_sym, qdot_sym, tau_sym],
-        [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
-    )
-
-    rows = 9
-    cols = 3
-    F = [[0] * cols for _ in range(rows)]
-
-    for i in range(0, 9):
-        idx = i * (polynomial_degree + 1)
-        F[i] = Contact_Force(
-            sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
-        )
-    F_array = np.array(F)
+    # q_sym = MX.sym("q_sym", nq, 1)
+    # qdot_sym = MX.sym("qdot_sym", nq, 1)
+    # tau_sym = MX.sym("tau_sym", nq, 1)
+    #
+    # phase = 2
+    # Contact_Force = Function(
+    #     "Contact_Force",
+    #     [q_sym, qdot_sym, tau_sym],
+    #     [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    # )
+    #
+    # rows = 11
+    # cols = 3
+    # F = [[0] * cols for _ in range(rows)]
+    #
+    # for i in range(0, 11):
+    #     idx = i * (polynomial_degree + 1)
+    #     F[i] = Contact_Force(
+    #         sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+    #     )
+    # F_array = np.array(F)
 
     data = dict(
         states=sol.states,
@@ -469,7 +467,7 @@ def main():
         param_scaling=[nlp.parameters.scaling for nlp in ocp.nlp],
         phase_time=sol.phase_time,
         Time=sol.time,
-        Force_Values=F_array,
+        # Force_Values=F_array,
     )
 
     with open(saveName, "wb") as file:

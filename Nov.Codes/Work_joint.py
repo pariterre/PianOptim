@@ -224,3 +224,25 @@ for joint in range(len(Name)):
 
 plt.show()
 
+# Initialize the array to store overall work for each joint
+overall_work_data1 = np.zeros((num_joints, 1))
+overall_work_data2 = np.zeros((7, 1))  # Adjusted for 7 DOFs in data_2
+
+# Calculate overall work for each joint
+for joint in range(num_joints):
+    for phase in range(5):
+        delta_q = np.diff(array_q_s_1[phase][joint])
+        tau = array_tau_s_1[phase][joint][:-1]
+        overall_work_data1[joint] += calculate_work(tau, delta_q)
+
+for joint in range(7):  # Adjusted for 7 DOFs in data_2
+    for phase in range(5):
+        delta_q = np.diff(array_q_s_2[phase][joint])
+        tau = array_tau_s_2[phase][joint][:-1]
+        overall_work_data2[joint] += calculate_work(tau, delta_q)
+
+# Print overall work for each joint in data_1 and data_2
+print("Overall work for each joint in data_1 (with Thorax & Pelvic):", overall_work_data1.flatten())
+print("Overall work for each joint in data_2 (without Thorax & Pelvic):", overall_work_data2.flatten())
+
+
