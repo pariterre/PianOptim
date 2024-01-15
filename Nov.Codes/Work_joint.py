@@ -216,7 +216,7 @@ for joint in range(len(Name)):
         plt.text(bar.get_x() + bar.get_width()/2, yval, round(yval, 2), ha='center', va='bottom')
 
     plt.xlabel('Phase')
-    plt.ylabel('Work (Nm)')
+    plt.ylabel('Work (N.m.deg)')
     plt.title(f'Work Done by {Name[joint]} in Each Phase')
     plt.xticks(x, phases)
     plt.legend()
