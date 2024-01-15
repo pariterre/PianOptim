@@ -3,12 +3,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-with open("/home/alpha/Desktop/5Dec/Struck_with_Thorax_2.pckl", "rb") as file:
+with open("/home/alpha/Desktop/5Dec/Struck_with_Thorax_100.pckl", "rb") as file:
     new_dict = pickle.load(file)
 
 biorbd_model_path: str = "Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
-
-# # --- Animate --- # #
 
 b = bioviz.Viz(
     biorbd_model_path,
@@ -20,7 +18,7 @@ b = bioviz.Viz(
     show_global_center_of_mass=True,
     show_global_jcs=True,
     show_markers=True,
-    n_frames=50,
+    n_frames=100,
     show_local_ref_frame=False,
 )
 

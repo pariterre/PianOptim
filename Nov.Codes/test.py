@@ -26,8 +26,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with"
-label_2 = "without"
+label_1 = "Struck_Touch_Condition_1"
+label_2 = "Struck_Touch_Condition_2"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -109,31 +109,34 @@ Name = [
 ]
 #
 # Handle NaN values in tau arrays
-fig, axs = plt.subplots(nrows=7, ncols=3, figsize=(15, 30))  # Adjust figsize as needed
+fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(15, 30))  # Adjust figsize as needed
 
-for i in range(-7, 0):  # Iterate over each DOF
-    # Plot q for this DOF
-    axs[i, 0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-    axs[i, 0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2)
-    axs[i, 0].set_title(Name[i])
+i_to_j_mapping = {-4: -1, -3: -2, -2: -4, -1: -5}
+
+for i in range(-4, 0):  # Iterate over each DOF
+    # Determine the corresponding j value for this i
+    j = i_to_j_mapping[i]
+
+    axs[i, 0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[j, :], color="red", label=label_1)
+    axs[i, 0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[j, :], color="blue", linestyle="--", label=label_2)
+    axs[i, 0].set_title(Name[j])
     axs[i, 0].set_ylabel("θ (deg)")
-    axs[i, 0].legend()
     axs[i, 0].fill_betweenx(axs[i, 0].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
 
     # Plot qdot for this DOF
-    axs[i, 1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
-    axs[i, 1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2)
-    axs[i, 1].set_title(Name[i])
+    axs[i, 1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[j, :], color="red", label=label_1)
+    axs[i, 1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[j, :], color="blue", linestyle="--", label=label_2)
+    axs[i, 1].set_title(Name[j])
     axs[i, 1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
-    axs[i, 1].legend()
+    handles, labels = axs[i, 1].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper right', fontsize='small', bbox_to_anchor=(0.210,0.21))
     axs[i, 1].fill_betweenx(axs[i, 1].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
 
     # Plot tau for this DOF
-    axs[i, 2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
-    axs[i, 2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2)
-    axs[i, 2].set_title(Name[i])
+    axs[i, 2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[j, :], color="red", label=label_1)
+    axs[i, 2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[j, :], color="blue", linestyle="--", label=label_2)
+    axs[i, 2].set_title(Name[j])
     axs[i, 2].set_ylabel(r"$\tau$ (N/m)")
-    axs[i, 2].legend()
     axs[i, 2].fill_betweenx(axs[i, 2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
 
 # Set common properties for all subplots

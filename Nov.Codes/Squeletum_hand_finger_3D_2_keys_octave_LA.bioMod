@@ -17,11 +17,9 @@ segment pelvis
        // RT (rotation-translation matrix): Set the initial orientation and position
        // pi/2 0 0 xyz 0 0 0 - Represents the rotation (in radians) and translation coordinates
     // Rotational around the z-axis
-    translations x
     rotations z
         rangesQ
             // Range of motion constraints (in radians)
-            -0.1 0.05
             -pi/16 pi/16
             // Limited to -pi/16 to pi/16 radians to simulate realistic pelvic motion
 

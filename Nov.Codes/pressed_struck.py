@@ -106,8 +106,8 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
-        dof_wrist_finger = [9, 10]
-        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        dof_wrist_finger = [8, 9]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7]
 
     else:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
@@ -115,6 +115,9 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
 
     all_phases = [0, 1, 2, 3, 4]
+
+    except_upward_phases = [0, 1, 2]
+    upward_phases = [3, 4]
 
     biorbd_model = (
         BiorbdModel(biorbd_model_path),
@@ -146,12 +149,23 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # Objectives
     # Minimize Torques
     objective_functions = ObjectiveList()
-    for phase in all_phases:
+    for phase in except_upward_phases:
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
+        )
+
+    for phase in upward_phases:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=[0,1,2,6,7]
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=[3,4,5,8,9]
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
@@ -310,11 +324,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
 
         if allDOF:
-            x_init[phase]["q"][5, 0] = 0.08  # Right Shoulder, Internal and External Rotation
-            x_init[phase]["q"][6, 0] = 0.67  # Right Shoulder, Flexion and Extension
-            x_init[phase]["q"][7, 0] = 1.11  # Elbow, Flexion and Extension
-            x_init[phase]["q"][8, 0] = 1.48  # Elbow, Pronation and Supination
-            x_init[phase]["q"][10, 0] = 0.17  # MCP, Flexion and Extension
+            x_init[phase]["q"][4, 0] = 0.08  # Right Shoulder, Internal and External Rotation
+            x_init[phase]["q"][5, 0] = 0.67  # Right Shoulder, Flexion and Extension
+            x_init[phase]["q"][6, 0] = 1.11  # Elbow, Flexion and Extension
+            x_init[phase]["q"][7, 0] = 1.48  # Elbow, Pronation and Supination
+            x_init[phase]["q"][9, 0] = 0.17  # MCP, Flexion and Extension
 
         else:
 
@@ -343,14 +357,14 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
         if allDOF:
 
-            x_bounds[phase]["qdot"].min[[1, 2, 3, 4, 5, 6], :] = -3
-            x_bounds[phase]["qdot"].max[[1, 2, 3, 4, 5, 6], :] = 3
+            x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
+            x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
 
-            x_bounds[phase]["qdot"].min[[7, 8], :] = -4
-            x_bounds[phase]["qdot"].max[[7, 8], :] = 4
+            x_bounds[phase]["qdot"].min[[6, 7], :] = -4
+            x_bounds[phase]["qdot"].max[[6, 7], :] = 4
 
-            x_bounds[phase]["qdot"].min[[9, 10], :] = -15
-            x_bounds[phase]["qdot"].max[[9, 10], :] = 15
+            x_bounds[phase]["qdot"].min[[8, 9], :] = -15
+            x_bounds[phase]["qdot"].max[[8, 9], :] = 15
 
         else:
 
@@ -369,11 +383,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if allDOF:
 
-        x_bounds[0]["q"][[1], 0] = -0.1
-        x_bounds[0]["q"][[3], 0] = 0.1
+        x_bounds[0]["q"][[0], 0] = -0.1
+        x_bounds[0]["q"][[2], 0] = 0.1
 
-        x_bounds[4]["q"][[1], 2] = -0.1
-        x_bounds[4]["q"][[3], 2] = 0.1
+        x_bounds[4]["q"][[0], 2] = -0.1
+        x_bounds[4]["q"][[2], 2] = 0.1
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -415,8 +429,8 @@ def main():
     dirName = "/home/alpha/Desktop/5Dec/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_2.pckl"
-        nq = 11
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_100.pckl"
+        nq = 10
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
         nq = 7
