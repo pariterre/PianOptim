@@ -104,6 +104,7 @@ def custom_func_track_principal_finger_pi_in_two_global_axis(controller: Penalty
     return output_casadi
 
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
+
     if allDOF:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA.bioMod"
         dof_wrist_finger = [8, 9]
@@ -113,11 +114,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         biorbd_model_path = "./Squeletum_hand_finger_3D_2_keys_octave_LA_without.bioMod"
         dof_wrist_finger = [5, 6]
         all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
-
-    all_phases = [0, 1, 2, 3, 4]
-
-    except_upward_phases = [0, 1, 2]
-    upward_phases = [3, 4]
 
     biorbd_model = (
         BiorbdModel(biorbd_model_path),
@@ -146,30 +142,75 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=3)
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=4)
 
+    all_phases = [0, 1, 2, 3, 4]  # All movement phases from preparation to return to neutral
+    except_upward_phases = [0, 1, 2]  # Phases excluding the upward movement of the hand
+    upward_phases = [3, 4]  # Phases including the upward movement of the hand and return to neutral
+
+    # Defining Degrees of Freedom (DOFs) for all joints
+    all_dofs = {
+        "Pelvis and Truck and Elbow": [0, 1, 2, 6, 7],
+        "Right Shoulder": [3, 4, 5],
+        "Wrist and MCP": [8, 9]
+    }
+
+    immobilized_joints_scenario = {
+        "Right Shoulder": [0, 1, 2],
+        "Elbow": [3, 4],
+        "Wrist and MCP": [5, 6],
+        "MCP": [6]
+    }
+
     # Objectives
     # Minimize Torques
     objective_functions = ObjectiveList()
+
     for phase in except_upward_phases:
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
+        if phase==0:
+
+            if allDOF==False:
+
+                objective_functions.add(
+                    ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=immobilized_joints_scenario["MCP"]
+                )
 
     for phase in upward_phases:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=[0,1,2,6,7]
-        )
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=[3,4,5,8,9]
-        )
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
-        )
+        if allDOF:
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dofs["Pelvis and Truck and Elbow"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=50, index=all_dofs["Right Shoulder"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=all_dofs["Wrist and MCP"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
+            )
+
+        else:
+
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=immobilized_joints_scenario["Elbow"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=50, index=immobilized_joints_scenario["Right Shoulder"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=immobilized_joints_scenario["Wrist and MCP"]
+            )
+            objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
+            )
 
     # Constraints
     constraints = ConstraintList()
@@ -219,6 +260,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     ForceProfile = [30, 28, 24, 20, 16, 12, 8, 4, 0]
+    # ForceProfile = [90, 84, 72, 60, 48, 36, 24, 12, 0]
 
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
@@ -357,6 +399,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
         if allDOF:
 
+            x_bounds[phase]["q"].max[[0], 0] = 0.06
+
             x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
             x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
 
@@ -383,11 +427,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if allDOF:
 
-        x_bounds[0]["q"][[0], 0] = -0.1
-        x_bounds[0]["q"][[2], 0] = 0.1
+        x_bounds[0]["q"][[0], 0] = 0
+        x_bounds[0]["q"][[2], 0] = 0
 
-        x_bounds[4]["q"][[0], 2] = -0.1
-        x_bounds[4]["q"][[2], 2] = 0.1
+        x_bounds[4]["q"][[0], 2] = 0
+        x_bounds[4]["q"][[2], 2] = 0
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -425,11 +469,11 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = True
-    pressed = False  #False means Struck
-    dirName = "/home/alpha/Desktop/5Dec/"
+    pressed = True  #False means Struck
+    dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_100.pckl"
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
         nq = 10
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"

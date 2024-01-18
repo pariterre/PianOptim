@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/5Dec/"
+dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
@@ -26,8 +26,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "Struck_Touch_Condition_1"
-label_2 = "Struck_Touch_Condition_2"
+label_1 = "With"
+label_2 = "Without"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
