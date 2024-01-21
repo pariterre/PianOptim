@@ -11,8 +11,8 @@ def degrees(radians):
 def calculate_work(tau, delta_q):
     return np.sum(tau * delta_q)
 
-dirName = "/home/alpha/Desktop/5Dec/"
-typeTouch = "Struck" #"Pressed" #
+dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
+typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",

@@ -108,40 +108,31 @@ Name = [
     "MCP, Flexion (+) and Extension (-)",
 ]
 #
-# Handle NaN values in tau arrays
 
-for i in range(-7, 0):
+for i in range(-10, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q
     axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-    axs[0].plot(
-        concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2
-    )
+    if i >= -7:  # Check if data2 has this index
+        axs[0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[0].fill_betweenx(axs[0].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
-
     axs[0].set_title(Name[i])
     axs[0].set_ylabel("θ (deg)")
     axs[0].legend()
 
     # Plot for qdot
     axs[1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
-
-    axs[1].plot(
-        concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2
-    )
+    if i >= -7:  # Check if data2 has this index
+        axs[1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[1].fill_betweenx(axs[1].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
-
     axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
     axs[1].legend()
 
     # Plot for tau
     axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
-    axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", label=label_2)
-    axs[2].step(concatenated_array_time_s_2,
-                concatenated_array_tau_s_1[i, :]-concatenated_array_tau_s_2[i, :],
-                color="black", linestyle="--", label="diff")
-
+    if i >= -7:  # Check if data2 has this index
+        axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[2].set_ylabel(r"$\tau$ (N/m)")
     axs[2].set_xlabel("Time (sec)")
@@ -154,35 +145,19 @@ for i in range(-7, 0):
         ax.yaxis.set_minor_locator(AutoMinorLocator())
         ax.grid(which="minor", linestyle=":", linewidth="0.2", color="gray")
 
-        # Add vertical lines for specific points in data_1
+        # Add vertical lines for specific points in data_1 and data_2
         for point in specific_points_s_1:
             ax.axvline(x=point, color="k", linestyle=":")
-
-        for point in specific_points_s_2:
-            ax.axvline(x=point, color="k", linestyle=":")
+        if i >= -7:
+            for point in specific_points_s_2:
+                ax.axvline(x=point, color="k", linestyle=":")
 
     plt.tight_layout()
+plt.show()
 
+# Calculations outside the loop
 I1 = (np.trapz(concatenated_array_tau_s_1[-1, :]**2, x=concatenated_array_time_s_1) +
       np.trapz(concatenated_array_tau_s_1[-2, :]**2, x=concatenated_array_time_s_1))
 I2 = (np.trapz(concatenated_array_tau_s_2[-1, :]**2, x=concatenated_array_time_s_2) +
       np.trapz(concatenated_array_tau_s_2[-2, :]**2, x=concatenated_array_time_s_2))
 print(I1, I2, (I1-I2)/I2*100)
-
-plt.show()
-
-# # Process and plot Force Values for data_1
-# Force_Values_V1 = np.array(data_1["Force_Values"][:, 2])
-# Force_Values_V2 = np.array(data_2["Force_Values"][:, 2])
-# width = 0.2
-#
-# x = np.arange(len(Force_Values_V1))
-# plt.bar(x, Force_Values_V1.flatten(), label='1st_Version', color='blue')
-# # plt.bar(x, Force_Values_V2.flatten(), label='Regularized_Version_2', color='red')
-#
-# plt.xlabel('Nodes')
-# plt.ylabel('Force Values (N)')
-# plt.title('Force Values')
-# plt.legend()
-# plt.tight_layout()
-# plt.show()

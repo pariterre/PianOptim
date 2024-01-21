@@ -10,7 +10,7 @@ def degrees(radians):
     return np.degrees(radians)
 
 dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
-typeTouch = "Struck" #"Pressed" #
+typeTouch = "Struck" #"Pressed"#
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",
@@ -107,6 +107,8 @@ for i in range(0,5):
 
 	percentage_diff[i]=((I1[i]-I2[i])/I2[i]*100)
 
+phase = ["Preparation", "Key Descend", "Key Bed", "Key Release", "Return to Neutral"]
+
 # Transposing data for plotting
 phases = np.arange(len(I1))  # Assuming each row is a different phase
 # Creating subplots
@@ -117,7 +119,8 @@ axe.bar(phases - 0.2, I1, 0.4, label='With_Thorax')
 axe.bar(phases + 0.2, I2, 0.4, label='Without_Thorax')
 axe.set_title('Analysis of Tau² Reduction Across Different Phases_'+ typeTouch)
 axe.set_xlabel('Phases')
-axe.set_ylabel('Values')
+plt.xticks(phases, phase)
+axe.set_ylabel('Area Under Curve (AUC) of tau² for the distal joints (Nm)²')
 axe.legend()
 
 # Adjust layout and show plot
@@ -126,3 +129,4 @@ plt.show()
 
 print(I1)
 print(I2)
+print(percentage_diff)

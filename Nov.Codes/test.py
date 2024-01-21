@@ -10,7 +10,7 @@ def degrees(radians):
     return np.degrees(radians)
 
 dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
-typeTouch = "Struck" #"Pressed" #
+typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",

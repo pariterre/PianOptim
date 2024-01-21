@@ -6,7 +6,7 @@ def degrees(radians):
     return np.degrees(radians)
 
 
-dirName = "/home/alpha/Desktop/5Dec/"
+dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
@@ -83,22 +83,31 @@ Name = [
     "MCP, Flexion (+) and Extension (-)",
 ]
 
-
 # Function to display plots for all phases for each group of joints
-def display_all_phases_per_group_of_joints(data, num_phases, num_joints, title_prefix):
-    for start_joint in range(0, num_joints, 3):
+def display_all_phases_per_group_of_joints(data1, data2, num_phases, num_joints_data1, num_joints_data2, title_prefix):
+    offset = 3  # Offset for data2 indices
+
+    for start_joint_data1 in range(0, num_joints_data1, 3):
         fig, axs = plt.subplots(1, 3, figsize=(20, 6))  # Adjust figsize as needed
-        fig.suptitle(f'{title_prefix} Joints {start_joint} to {min(start_joint + 2, num_joints - 1)}')
+        fig.suptitle(f'{title_prefix} Joints {start_joint_data1} to {min(start_joint_data1 + 2, num_joints_data1 - 1)}')
 
-        for i, joint in enumerate(range(start_joint, min(start_joint + 3, num_joints))):
+        for i, joint_data1 in enumerate(range(start_joint_data1, min(start_joint_data1 + 3, num_joints_data1))):
             ax = axs[i]
+            joint_data2 = joint_data1 - offset  # Adjusting the joint index for data2
+
             for phase in range(num_phases):
-                tau = data["controls"][phase]["tau"][joint]
-                theta = degrees(data["states_no_intermediate"][phase]["q"][joint])
+                # Plot for data1
+                tau_data1 = data1["controls"][phase]["tau"][joint_data1]
+                theta_data1 = degrees(data1["states_no_intermediate"][phase]["q"][joint_data1])
+                ax.plot(theta_data1, tau_data1, label=f'Data1 Phase {phase}')
 
-                ax.plot(theta, tau, label=f'Phase {phase}')
+                # Plot for data2 if index is within range
+                if 0 <= joint_data2 < num_joints_data2:
+                    tau_data2 = data2["controls"][phase]["tau"][joint_data2]
+                    theta_data2 = degrees(data2["states_no_intermediate"][phase]["q"][joint_data2])
+                    ax.plot(theta_data2, tau_data2, label=f'Data2 Phase {phase}', linestyle='--')
 
-            ax.set_title(f'Joint {joint}')
+            ax.set_title(f'Joint {joint_data1}')
             ax.set_xlabel('Theta (degrees)')
             ax.set_ylabel('Tau (Nm)')
             ax.legend()
@@ -107,17 +116,11 @@ def display_all_phases_per_group_of_joints(data, num_phases, num_joints, title_p
         plt.tight_layout()
         plt.show()
 
-
 # Assuming data_1 and data_2 are already loaded as per your snippet
 phases = ["Preparation", "Key Descend", "Key Bed", "Key Release", "Return to Neutral"]
 num_phases = len(phases)
-num_joints = len(data_1["states_no_intermediate"][0]["q"])  # Assuming same number of joints in each phase
+num_joints_data1 = len(data_1["states_no_intermediate"][0]["q"])  # Number of joints in data1
+num_joints_data2 = len(data_2["states_no_intermediate"][0]["q"])  # Number of joints in data2
 
 # Displaying plots for data_1 and data_2
-display_all_phases_per_group_of_joints(data_1, num_phases, num_joints, 'Data_1')
-
-num_phases = len(phases)
-num_joints = len(data_2["states_no_intermediate"][0]["q"])  # Assuming same number of joints in each phase
-
-# Displaying plots for data_1 and data_2
-display_all_phases_per_group_of_joints(data_2, num_phases, num_joints, 'Data_2')
+display_all_phases_per_group_of_joints(data_1, data_2, num_phases, num_joints_data1, num_joints_data2, 'Comparative Analysis of Data_1 and Data_2')
