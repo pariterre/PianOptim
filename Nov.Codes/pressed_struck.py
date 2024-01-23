@@ -134,17 +134,16 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         n_shooting = (30, 6, 9, 10, 10)
         phase_time = (0.3, 0.027, 0.058, 0.15, 0.15)
 
+
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=0)
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=1)
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=True, phase=2)
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=3)
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=4)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN,phase=0)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN,phase=1)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN,phase=2)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN,phase=3)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN,phase=4)
 
     all_phases = [0, 1, 2, 3, 4]  # All movement phases from preparation to return to neutral
-    except_upward_phases = [0, 1, 2]  # Phases excluding the upward movement of the hand
-    upward_phases = [3, 4]  # Phases including the upward movement of the hand and return to neutral
 
     # Defining Degrees of Freedom (DOFs) for all joints
     all_dofs = {
@@ -163,8 +162,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # Objectives
     # Minimize Torques
     objective_functions = ObjectiveList()
-
-    for phase in except_upward_phases:
+    for phase in all_phases:
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
@@ -174,129 +172,39 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
-        if phase==0:
-
-            if allDOF==False:
-
-                objective_functions.add(
-                    ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=immobilized_joints_scenario["MCP"]
-                )
-
-    for phase in upward_phases:
-        if allDOF:
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dofs["Pelvis and Truck and Elbow"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=50, index=all_dofs["Right Shoulder"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=all_dofs["Wrist and MCP"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
-            )
-
-        else:
-
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=immobilized_joints_scenario["Elbow"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=50, index=immobilized_joints_scenario["Right Shoulder"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=immobilized_joints_scenario["Wrist and MCP"]
-            )
-            objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
-            )
-
     # Constraints
     constraints = ConstraintList()
     if pressed:
-        constraints.add(
-            ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=0, node=Node.ALL,
-            first_marker="finger_marker",
-            second_marker="high_square",
-        )
-    else:
-        constraints.add(
-            ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=0, node=Node.START,
-            first_marker="finger_marker",
-            second_marker="high_square",
-        )
-        constraints.add(
-            ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=0, node=Node.END,
-            first_marker="finger_marker",
-            second_marker="high_square",
-        )
-
-    #Stricly constrained velocity at start
-    constraints.add(
-        ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1, node=Node.START,
-        marker_index=4, axes=None if pressed else Axis.Z, #none means all
-        target=vel_push_array[0]
-    )
-
-    for node in range(1, len(vel_push_array)):
-        constraints.add(
-            ConstraintFcn.TRACK_MARKERS_VELOCITY,
-            phase=1, node=node,
-            marker_index=4, axes=Axis.Z,
-            min_bound=-0.01, max_bound=0.01,
-            target=vel_push_array[node],
-        )
-
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=1, node=Node.END,
-        first_marker="finger_marker",
-        second_marker="low_square",
-    )
-
-    ForceProfile = [30, 28, 24, 20, 16, 12, 8, 4, 0]
-    # ForceProfile = [90, 84, 72, 60, 48, 36, 24, 12, 0]
-
-    for node in range(n_shooting[2]):
-        for idx in [0, 1]:
+        for phase in all_phases:
             constraints.add(
-                ConstraintFcn.TRACK_CONTACT_FORCES,
-                phase=2, node=node,
-                contact_index=idx,
-                min_bound=-ForceProfile[node] / 3, max_bound=ForceProfile[node] / 3,
-                quadratic=False,
+                ConstraintFcn.SUPERIMPOSE_MARKERS,
+                phase=phase, node=Node.ALL,
+                first_marker="finger_marker",
+                second_marker="high_square",
+            )
+    else:
+        for phase in [0,1,2]:
+            constraints.add(
+                ConstraintFcn.SUPERIMPOSE_MARKERS,
+                phase=phase, node=Node.ALL,
+                first_marker="finger_marker",
+                second_marker="high_square",
             )
 
         constraints.add(
-            ConstraintFcn.TRACK_CONTACT_FORCES,
-            phase=2, node=node,
-            contact_index=2,
-            target=ForceProfile[node],
-            quadratic=False,
-            # min_bound=-0.1, max_bound=0.1,
+            ConstraintFcn.SUPERIMPOSE_MARKERS,
+            phase=3, node=Node.END,
+            first_marker="MCP_contact_finger",
+            second_marker="phase_3_upward",
         )
 
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=3, node=Node.END,
-        first_marker="MCP_contact_finger",
-        second_marker="phase_3_upward",
-    )
-
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=4, node=Node.END,
-        first_marker="finger_marker",
-        second_marker="high_square",
-    )
-
-    for phase in all_phases:
-        # To keep the index and the small finger above the bed key.
+        constraints.add(
+            ConstraintFcn.SUPERIMPOSE_MARKERS,
+            phase=4, node=Node.END,
+            first_marker="finger_marker",
+            second_marker="high_square",
+        )
+          # To keep the index and the small finger above the bed key.
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
             phase=phase, node=Node.ALL,
@@ -399,7 +307,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
         if allDOF:
 
-            x_bounds[phase]["q"].max[[0], 0] = 0.06
+            # x_bounds[phase]["q"].max[[0], 0] = 0.06
 
             x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
             x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
@@ -429,7 +337,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
         x_bounds[0]["q"][[0], 0] = 0
         x_bounds[0]["q"][[2], 0] = 0
-
+        #
         x_bounds[4]["q"][[0], 2] = 0
         x_bounds[4]["q"][[2], 2] = 0
 
@@ -455,7 +363,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         u_init=u_init,
         x_bounds=x_bounds,
         u_bounds=u_bounds,
-        objective_functions=objective_functions,
+        # objective_functions=objective_functions,
         constraints=constraints,
         phase_transitions=phase_transition,
         ode_solver=ode_solver,
@@ -469,11 +377,11 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = True
-    pressed = True  #False means Struck
+    pressed = False  # True means Struck
     dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
 
     if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax_new_phase34.pckl"
         nq = 10
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"

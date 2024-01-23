@@ -20,7 +20,7 @@ segment pelvis
    // rotations z
         rangesQ
             // Range of motion constraints (in radians)
-            -pi/16 pi/16
+            -pi/8 pi/8
             // Limited to -pi/16 to pi/16 radians to simulate realistic pelvic motion
 
     mass 11.777

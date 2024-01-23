@@ -10,14 +10,14 @@ def degrees(radians):
     return np.degrees(radians)
 
 dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
-typeTouch = "Pressed" #"Struck" #
+typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
-with open(dirName + typeTouch + "_with_Thorax.pckl",
+with open(dirName + typeTouch + "_with_Thorax_3.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open(dirName + typeTouch + "_without_Thorax.pckl",
+with open(dirName + typeTouch + "_with_Thorax_2.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
