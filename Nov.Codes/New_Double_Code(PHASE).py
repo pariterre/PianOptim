@@ -9,15 +9,15 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
+dirName = "/home/alpha/Desktop/Class/"
 typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
-with open(dirName + typeTouch + "_with_Thorax_3.pckl",
+with open(dirName + typeTouch + "_with_Thorax.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open(dirName + typeTouch + "_with_Thorax_2.pckl",
+with open(dirName + typeTouch + "_without_Thorax.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
@@ -26,8 +26,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with Thorax"
-label_2 = "without Thorax"
+label_1 = typeTouch+ " Touch DT Strategy"
+label_2 = typeTouch+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1

@@ -11,8 +11,8 @@ def degrees(radians):
 def calculate_work(tau, delta_q):
     return np.sum(tau * delta_q)
 
-dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
-typeTouch = "Pressed" #"Struck" #
+dirName = "/home/alpha/Desktop/Class/"
+typeTouch = "Struck" #"Pressed" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",
@@ -28,8 +28,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with"
-label_2 = "without"
+label_1 = typeTouch+ " Touch DT Strategy"
+label_2 = typeTouch+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -246,3 +246,12 @@ print("Overall work for each joint in data_1 (with Thorax & Pelvic):", overall_w
 print("Overall work for each joint in data_2 (without Thorax & Pelvic):", overall_work_data2.flatten())
 
 
+df_overall_work_data1 = pd.DataFrame(overall_work_data1, columns=['Work (N.m.deg)'])
+df_overall_work_data2 = pd.DataFrame(overall_work_data2, columns=['Work (N.m.deg)'])
+df_overall_work_data1.index = Name
+df_overall_work_data2.index = Name[:7]  # Adjusted for 7 DOFs in data_2
+df_overall_work_data1.to_excel("/home/alpha/Desktop/Class/overall_work_data1_Struck.xlsx")
+df_overall_work_data2.to_excel("/home/alpha/Desktop/Class/overall_work_data2_Struck.xlsx")
+with pd.ExcelWriter("/home/alpha/Desktop/Class/overall_work_data_Struck.xlsx") as writer:
+    df_overall_work_data1.to_excel(writer, sheet_name='With Thorax & Pelvic')
+    df_overall_work_data2.to_excel(writer, sheet_name='Without Thorax & Pelvic')

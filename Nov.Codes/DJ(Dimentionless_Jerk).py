@@ -11,8 +11,8 @@ def degrees(radians):
 def calculate_work(tau, delta_q):
     return np.sum(tau * delta_q)
 
-dirName = "/home/alpha/Desktop/5Dec/"
-typeTouch = "Struck" #"Pressed" #
+dirName = "/home/alpha/Desktop/Class/"
+typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
 with open(dirName + typeTouch + "_with_Thorax.pckl",
@@ -28,8 +28,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with"
-label_2 = "without"
+label_1 = typeTouch+ " Touch DT Strategy"
+label_2 = typeTouch+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -162,8 +162,8 @@ for joint_name, (jerks_data1, jerks_data2) in dimensionless_jerk_results.items()
     x = np.arange(num_phases)
     width = 0.35
 
-    plt.bar(x - width/2, jerks_data1, width, label='Data 1 (with Thorax & Pelvic)')
-    plt.bar(x + width/2, jerks_data2, width, label='Data 2 (without Thorax & Pelvic)')
+    plt.bar(x - width/2, jerks_data1, width, label='DT (with Thorax & Pelvic)')
+    plt.bar(x + width/2, jerks_data2, width, label='ST (without Thorax & Pelvic)')
 
     plt.xlabel('Phase')
     plt.ylabel('Dimensionless Jerk')
@@ -172,3 +172,19 @@ for joint_name, (jerks_data1, jerks_data2) in dimensionless_jerk_results.items()
     plt.legend()
     plt.grid(axis='y')
 plt.show()
+
+# Convert Dimensionless Jerk results into a DataFrame
+df_dimensionless_jerk_data1 = pd.DataFrame(index=phases)
+df_dimensionless_jerk_data2 = pd.DataFrame(index=phases)
+
+for joint_name, (jerks_data1, jerks_data2) in dimensionless_jerk_results.items():
+    df_dimensionless_jerk_data1[joint_name] = jerks_data1
+    df_dimensionless_jerk_data2[joint_name] = jerks_data2
+
+# Transpose DataFrames for a better layout (joints as columns, phases as rows)
+df_dimensionless_jerk_data1 = df_dimensionless_jerk_data1.T
+df_dimensionless_jerk_data2 = df_dimensionless_jerk_data2.T
+
+with pd.ExcelWriter(f"{dirName}dimensionless_jerk_results_{typeTouch}.xlsx") as writer:
+    df_dimensionless_jerk_data1.to_excel(writer, sheet_name='With Thorax & Pelvic')
+    df_dimensionless_jerk_data2.to_excel(writer, sheet_name='Without Thorax & Pelvic')

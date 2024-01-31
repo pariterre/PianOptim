@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/Desktop/New_results_19Jan2024/"
+dirName = "/home/alpha/Desktop/Class/"
 typeTouch = "Struck" #"Pressed"#
 
 # Load data_1
@@ -27,8 +27,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = "with"
-label_2 = "without"
+label_1 = typeTouch+ " Touch DT Strategy"
+label_2 = typeTouch+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -115,13 +115,14 @@ phases = np.arange(len(I1))  # Assuming each row is a different phase
 fig, axe = plt.subplots(1, 1, figsize=(10, 8))
 
 # Bar graph for values 1 and 2 per each phase
-axe.bar(phases - 0.2, I1, 0.4, label='With_Thorax')
-axe.bar(phases + 0.2, I2, 0.4, label='Without_Thorax')
+axe.bar(phases - 0.2, I1, 0.4, label='DT Strategy')
+axe.bar(phases + 0.2, I2, 0.4, label='ST Strategy')
 axe.set_title('Analysis of Tau² Reduction Across Different Phases_'+ typeTouch)
 axe.set_xlabel('Phases')
 plt.xticks(phases, phase)
 axe.set_ylabel('Area Under Curve (AUC) of tau² for the distal joints (Nm)²')
 axe.legend()
+axe.grid(True)
 
 # Adjust layout and show plot
 plt.tight_layout()
