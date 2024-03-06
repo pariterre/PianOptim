@@ -42,16 +42,6 @@ def minimize_difference(controllers: list[PenaltyController, PenaltyController])
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
 
-# def custom_func_track_fingersand_above_bed_key(controller: PenaltyController, marker: str) -> MX:
-#     biorbd_model = controller.model
-#     finger_marker_idx = biorbd.marker_index(biorbd_model.model, marker)
-#     markers = controller.mx_to_cx("markers", biorbd_model.markers, controller.states["q"])
-#     finger_marker_coordinates = markers[:, finger_marker_idx]
-#
-#     markers_diff_keys = finger_marker_coordinates[2] - 0.05
-#
-#     return markers_diff_keys
-
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./With.bioMod"
@@ -174,12 +164,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=3, node=Node.END,
-        first_marker="MCP_marker",
-        second_marker="key1_above",
-    )
+    # constraints.add(
+    #     ConstraintFcn.SUPERIMPOSE_MARKERS,
+    #     phase=3, node=Node.END,
+    #     first_marker="MCP_marker",
+    #     second_marker="key1_above",
+    # )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -195,17 +185,9 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             phase=phase, node=Node.ALL,
             key="qdot",
             index=all_dof_except_wrist_finger[-2],  # prosupination
-            min_bound=-0.05, max_bound=0.05,
+            min_bound=-1, max_bound=1,
             quadratic=False,
         )
-
-        # constraints.add(
-        #     custom_func_track_fingersand_above_bed_key,
-        #     phase=phase, node=Node.ALL,
-        #     marker="finger_marker",
-        #     min_bound=-0.01,
-        #     max_bound=np.inf,
-        # )
 
     phase_transition = PhaseTransitionList()
     phase_transition.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=1)
@@ -298,7 +280,7 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = False #True means all DOF, False means no thorax
-    pressed = False #False means Struck
+    pressed = True #False means Struck
     dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
 
     if allDOF:

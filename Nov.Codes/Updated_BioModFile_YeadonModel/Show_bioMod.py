@@ -1,6 +1,6 @@
 import bioviz
 
-model_path = "./Without.bioMod"
+model_path = "./With.bioMod"
 
 b = bioviz.Viz(
     model_path,
@@ -11,7 +11,7 @@ b = bioviz.Viz(
     show_mass_center=False,
     show_gravity_vector=True,
     show_global_ref_frame=False,
-    show_local_ref_frame=False,
+    show_local_ref_frame=True,
     show_markers=True,
     show_meshes=True,
 )

@@ -164,12 +164,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=3, node=Node.END,
-        first_marker="MCP_marker",
-        second_marker="key1_above",
-    )
+    # constraints.add(
+    #     ConstraintFcn.SUPERIMPOSE_MARKERS,
+    #     phase=3, node=Node.END,
+    #     first_marker="MCP_marker",
+    #     second_marker="key1_above",
+    # )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -280,7 +280,7 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = True
-    pressed = False  #False means Struck
+    pressed = True  #False means Struck
     dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
 
     if allDOF:

@@ -3,8 +3,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-allDOF = False  # True means all DOF, False means no thorax
-pressed = False  # False means Struck
+allDOF = True  # True means all DOF, False means no thorax
+pressed = True  # False means Struck
 dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
 
 if allDOF:

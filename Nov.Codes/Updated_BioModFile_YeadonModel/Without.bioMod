@@ -10,13 +10,12 @@ segment ground
 endsegment
 
 segment Pelvis
-
     parent ground
-	rt 0.0 0.0 0.0 xyz 0 0 0
 
+	rt 0.0 0.0 0.0 xyz 0 0 0
 	//rotations x
-   // rangesQ
-      //  -pi/8 pi/8
+    rangesQ
+        -pi/8 pi/8
 
 	com 0.0 0.0 0.08319894874487606
 	mass 10.058833225829181
@@ -25,6 +24,7 @@ segment Pelvis
 		0.04605496938105104 0.0 0.0
 		0.0 0.0994661336936936 0.0
 		0.0 0.0 0.10198389475305641
+
 
 	meshfile Model_mesh/boule.stl
 	meshscale 1.8 1.10126582278481 1.8506493506493509
@@ -54,9 +54,9 @@ segment Rib
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 0.10800000000000004
 
 	//rotations xz
-	//ranges
-     //  -0.1 0.1
-     //  -0.1 0.1
+	ranges
+       -0.1 0.1
+       -0.1 0.1
 
 	com 0.0 0.0 0.09499997991182856
 	mass 9.447207093951407
@@ -66,7 +66,7 @@ segment Rib
 		0.0 0.0 0.09227389643028029
 	meshfile Model_mesh/thorax.stl
 	meshscale 0.889240506329114 1.10126582278481 0.6099999999999999
-	meshrt -0.15 0 0 xyz 0 -0.025 0
+	meshrt 1.42079632679 0 0 xyz 0 -0.025 0
 
 endsegment
 
@@ -210,7 +210,7 @@ endmarker
 
 // Defining a contact point for the Second Finger
 contact contact_finger
-    parent RightPalm
+    parent RightFingers
     position -0.015 0.0025 0.006
     axis xyz  // Specifying the axis for the contact point
 endcontact
@@ -275,14 +275,14 @@ endmarker
 // Marker for the top surface of Key 2
 marker Key2_Top
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.12
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.12-0.01
     // This marker is for the upper surface of the second piano key
 endmarker
 
 // Marker for the lower surface of Key 2
 marker Key2_base
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.12-0.01
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.12
     // Indicates the pressed state (Key descend, not pressed or struck touch) of the second key
 endmarker
 

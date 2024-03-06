@@ -107,7 +107,7 @@ Name = [
 ]
 #
 
-for i in [0, -1, -2]:
+for i in [-1, -2]:
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q
@@ -148,8 +148,10 @@ for i in [0, -1, -2]:
 plt.show()
 
 # Calculations outside the loop
-I1 = (np.trapz(concatenated_array_tau_s_1[-1, :]**2, x=concatenated_array_time_s_1) +
-      np.trapz(concatenated_array_tau_s_1[-2, :]**2, x=concatenated_array_time_s_1))
-I2 = (np.trapz(concatenated_array_tau_s_2[-1, :]**2, x=concatenated_array_time_s_2) +
-      np.trapz(concatenated_array_tau_s_2[-2, :]**2, x=concatenated_array_time_s_2))
+I1 = (np.trapz(abs(concatenated_array_tau_s_1[-1, :]), x=concatenated_array_time_s_1) +
+      np.trapz(abs(concatenated_array_tau_s_1[-2, :]), x=concatenated_array_time_s_1))
+
+I2 =(np.trapz(abs(concatenated_array_tau_s_2[-1, :]), x=concatenated_array_time_s_1) +
+     np.trapz(abs(concatenated_array_tau_s_2[-2, :]), x=concatenated_array_time_s_1))
+
 print(I1, I2, (I1-I2)/I2*100)
