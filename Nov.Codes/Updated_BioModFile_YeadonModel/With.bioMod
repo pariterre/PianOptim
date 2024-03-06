@@ -212,7 +212,7 @@ endsegment
 // Marker for the Finger
 marker finger_marker
     parent RightFingers
-    position 0 0 -0.055
+    position 0 0 -0.046782999938
 endmarker
 
 // Defining a contact point for the Second Finger

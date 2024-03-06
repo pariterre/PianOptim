@@ -14,7 +14,7 @@ else:
 
 biorbd_model_path = "With.bioMod" if allDOF else "Without.bioMod"
 
-with open(saveName, "rb") as file:
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl", "rb") as file:
     new_dict = pickle.load(file)
 
 b = bioviz.Viz(

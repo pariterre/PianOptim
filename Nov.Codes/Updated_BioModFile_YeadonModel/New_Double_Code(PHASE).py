@@ -12,11 +12,11 @@ dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonMo
 typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
-with open(dirName + typeTouch + "_with_Thorax.pckl",
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open(dirName + typeTouch + "_without_Thorax.pckl",
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
@@ -98,6 +98,8 @@ Name = [
     "Pelvic Tilt, Anterior (-) and Posterior (+) Rotation",
     "Thorax_1, Flexion (-) and Extension (+)",
     "Thorax_1, Left (+) and Right (-) Rotation",
+    "rib_1, Flexion (-) and Extension (+)",
+    "rib_2, Left (+) and Right (-) Rotation",
     "Right Shoulder, Flexion (+) and Extension (-)Abduction (-) and Adduction (+)",
     "Right Shoulder, Abduction (-) and Adduction (+)",
     "Right Shoulder, Internal (+) and External (-) Rotation",
@@ -107,7 +109,7 @@ Name = [
 ]
 #
 
-for i in [-1, -2]:
+for i in range(11):
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q
