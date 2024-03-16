@@ -5,7 +5,7 @@ model_path = "./With.bioMod"
 b = bioviz.Viz(
     model_path,
     markers_size=0.005,
-    contacts_size=0.0150,
+    contacts_size=0.00350,
     show_floor=False,
     show_segments_center_of_mass=True,
     show_mass_center=False,
@@ -13,6 +13,6 @@ b = bioviz.Viz(
     show_global_ref_frame=False,
     show_local_ref_frame=True,
     show_markers=True,
-    show_meshes=False,
+    show_meshes=True,
 )
 b.exec()

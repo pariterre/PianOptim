@@ -153,9 +153,10 @@ segment RightForearm
 	parent RightUpperArm
 	rt 0.0 0.0 0.0 xyz 0.0 0.0 -0.27249999999999996
 
-    rotations x
+    rotations xz
     ranges
-         -pi*3/4 0.05 pi*3/4
+         -pi*3/4 0.05
+         -pi/4 pi/4
 
     com 0.0 0.0 -0.10410688938640716
 
