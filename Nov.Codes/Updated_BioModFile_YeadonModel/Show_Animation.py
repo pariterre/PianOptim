@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-allDOF = True  # True means all DOF, False means no thorax
+allDOF = False  # True means all DOF, False means no thorax
 pressed = True  # False means Struck
 dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
 
@@ -14,7 +14,7 @@ else:
 
 biorbd_model_path = "With.bioMod" if allDOF else "Without.bioMod"
 
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl", "rb") as file:
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_without_Thorax.pckl", "rb") as file:
     new_dict = pickle.load(file)
 
 b = bioviz.Viz(

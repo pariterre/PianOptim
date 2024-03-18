@@ -42,6 +42,48 @@ def minimize_difference(controllers: list[PenaltyController, PenaltyController])
     pre, post = controllers
     return pre.controls.cx_end - post.controls.cx
 
+def custom_func_right_relative_To_PrincipalTracker(controller: PenaltyController) -> MX:
+    finger_marker_idx = biorbd.marker_index(controller.model.model, "finger_marker")
+    markers = controller.mx_to_cx("markers", controller.model.markers, controller.states["q"])
+    finger_marker = markers[:, finger_marker_idx]
+
+    finger_marker_5_idx = biorbd.marker_index(controller.model.model, "finger_marker_RightPinky")
+    markers_RightPinky = controller.mx_to_cx("markers_RightPinky", controller.model.markers, controller.states["q"])
+    finger_marker_RightPinky = markers_RightPinky[:, finger_marker_5_idx]
+
+    markers_diff = finger_marker[2] - finger_marker_RightPinky[2]
+
+    return markers_diff
+
+def custom_func_trackPrincipalAndPinkyFingerAboveKey(controller: PenaltyController, marker: str) -> MX:
+    biorbd_model = controller.model
+    finger_marker_idx = biorbd.marker_index(biorbd_model.model, marker)
+    markers = controller.mx_to_cx("markers", biorbd_model.markers, controller.states["q"])
+    finger_marker = markers[:, finger_marker_idx]
+
+    markers_diff_key = finger_marker[2] - (0.10)
+
+    return markers_diff_key
+
+def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
+    rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
+    q = controller.states["q"].mx
+    # global JCS gives the local matrix according to the global matrix
+    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
+    y = MX.zeros(4)
+    y[:4] = np.array([0, 1, 0, 1])
+    principal_finger_y = principal_finger_axis @ y
+    principal_finger_y = principal_finger_y[:3, :]
+
+    global_y = MX.zeros(3)
+    global_y[:3] = np.array([0, 1, 0])
+
+    teta = acos(dot(principal_finger_y, global_y[:3]))
+    output_casadi = controller.mx_to_cx("scal_prod", teta, controller.states["q"])
+
+    return output_casadi
+
+
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./With.bioMod"
@@ -164,12 +206,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-    # constraints.add(
-    #     ConstraintFcn.SUPERIMPOSE_MARKERS,
-    #     phase=3, node=Node.END,
-    #     first_marker="MCP_marker",
-    #     second_marker="key1_above",
-    # )
+    constraints.add(
+        ConstraintFcn.SUPERIMPOSE_MARKERS,
+        phase=3, node=Node.END,
+        first_marker="MCP_marker",
+        second_marker="key1_above",
+    )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -187,6 +229,30 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             index=all_dof_except_wrist_finger[-2],  # prosupination
             min_bound=-1, max_bound=1,
             quadratic=False,
+        )
+
+        # To keep the pinky finger on the right of the principal finger.
+        constraints.add(
+            custom_func_right_relative_To_PrincipalTracker,
+            phase=phase, node=Node.ALL,
+            min_bound=-0.008,
+            max_bound=0.008,
+        )
+
+     # To keep the index and the small finger above the bed key.
+        constraints.add(
+            custom_func_trackPrincipalAndPinkyFingerAboveKey,
+            phase=phase, node=Node.ALL,
+            marker="finger_marker",
+            min_bound=0,
+            max_bound=np.inf,
+        )
+        constraints.add(
+            custom_func_trackPrincipalAndPinkyFingerAboveKey,
+            phase=phase, node=Node.ALL,
+            marker="finger_marker_RightPinky",
+            min_bound=0,
+            max_bound=np.inf,
         )
 
     phase_transition = PhaseTransitionList()
@@ -210,39 +276,39 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
         # and +/- 15 rad/s for the Wrist and Finger.
 
-        if allDOF:
-
-            x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
-            x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
-
-            x_bounds[phase]["qdot"].min[[6], :] = -4
-            x_bounds[phase]["qdot"].max[[6], :] = 4
-
-            x_bounds[phase]["qdot"].min[[7, 8], :] = -15
-            x_bounds[phase]["qdot"].max[[7, 8], :] = 15
-
-        else:
-
-            x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -3
-            x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 3
-
-            x_bounds[phase]["qdot"].min[[3], :] = -4
-            x_bounds[phase]["qdot"].max[[3], :] = 4
-
-            x_bounds[phase]["qdot"].min[[4, 5], :] = -15
-            x_bounds[phase]["qdot"].max[[4, 5], :] = 15
+        # if allDOF:
+        #
+        #     x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
+        #     x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
+        #
+        #     x_bounds[phase]["qdot"].min[[6], :] = -4
+        #     x_bounds[phase]["qdot"].max[[6], :] = 4
+        #
+        #     x_bounds[phase]["qdot"].min[[7, 8], :] = -15
+        #     x_bounds[phase]["qdot"].max[[7, 8], :] = 15
+        #
+        # else:
+        #
+        #     x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -3
+        #     x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 3
+        #
+        #     x_bounds[phase]["qdot"].min[[3], :] = -4
+        #     x_bounds[phase]["qdot"].max[[3], :] = 4
+        #
+        #     x_bounds[phase]["qdot"].min[[4, 5], :] = -15
+        #     x_bounds[phase]["qdot"].max[[4, 5], :] = 15
 
     # Set the initial node value for the pelvis in the first phase to 0.0.
     # The first 0 in x_bounds[0] specifies the phase,
     # the [[0], 0] targets the pelvis (index 0) at the initial node.
 
-    if allDOF:
-
-        x_bounds[0]["q"][[0], 0] = 0
-        x_bounds[0]["q"][[1], 0] = 0
-
-        x_bounds[4]["q"][[0], 2] = 0
-        x_bounds[4]["q"][[1], 2] = 0
+    # if allDOF:
+    #
+    #     x_bounds[0]["q"][[0], 0] = 0
+    #     x_bounds[0]["q"][[1], 0] = 0
+    #
+    #     x_bounds[4]["q"][[0], 2] = 0
+    #     x_bounds[4]["q"][[1], 2] = 0
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -285,7 +351,7 @@ def main():
 
     if allDOF:
         saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
-        nq = 9
+        nq = 11
     else:
         saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
         nq = 6

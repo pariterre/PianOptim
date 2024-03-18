@@ -216,10 +216,16 @@ marker finger_marker
     position 0 0 -0.046782999938
 endmarker
 
+// Marker for the Finger    (Right Pinky)
+marker finger_marker_RightPinky
+    parent RightFingers
+    position -0.025 0 -0.046782999938
+endmarker
+
 // Defining a contact point for the Second Finger
 contact contact_finger
     parent RightFingers
-    position 0.015 -0.0025 0.026
+    position 0.015 -0.0025 -0.046782999938
     axis xyz  // Specifying the axis for the contact point
 endcontact
 
@@ -244,7 +250,6 @@ segment square
     mesh -0.14954042053222655    -0.5356114196777344+0.025  0.12
 
 endsegment
-
 
 // Key 2 Configuration
 segment square2
@@ -283,14 +288,14 @@ endmarker
 // Marker for the top surface of Key 2
 marker Key2_Top
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.12-0.01
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.12
     // This marker is for the upper surface of the second piano key
 endmarker
 
 // Marker for the lower surface of Key 2
 marker Key2_base
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.12
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.12-0.01
     // Indicates the pressed state (Key descend, not pressed or struck touch) of the second key
 endmarker
 

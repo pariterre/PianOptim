@@ -12,11 +12,11 @@ dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonMo
 typeTouch = "Pressed" #"Struck" #
 
 # Load data_1
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl",
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax.pckl",
           "rb") as file:
     data_1 = pickle.load(file)
 
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax_dongnothing.pckl",
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_without_Thorax.pckl",
           "rb") as file:
     data_2 = pickle.load(file)
 
@@ -109,7 +109,7 @@ Name = [
 ]
 #
 
-for i in range(11):
+for i in [-1,-2]:
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q

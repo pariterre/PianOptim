@@ -1,11 +1,11 @@
 import bioviz
 
-model_path = "./With.bioMod"
+model_path = "./Without.bioMod"
 
 b = bioviz.Viz(
     model_path,
     markers_size=0.005,
-    contacts_size=0.00350,
+    contacts_size=0.00550,
     show_floor=False,
     show_segments_center_of_mass=True,
     show_mass_center=False,
