@@ -1,4 +1,4 @@
-from casadi import MX, acos, dot, pi, Function
+from casadi import MX, acos, dot, pi, fmin, fmax
 import time
 import numpy as np
 import biorbd_casadi as biorbd
@@ -28,7 +28,18 @@ from bioptim import (
 )
 
 # Joint indices in the biomechanical model:
-# TO DO : Add the joint indices in the biomechanical model.
+#0. Pelvic Tilt: Anterior (+) Tilt / Posterior (-) Tilt
+#1. Thoracic Flexion/Extension: Flexion (+) / Extension (-)
+#2. Thoracic Rotation: Left (+) / Right (-)
+#3. Upper Thoracic (Rib Cage) Flexion/Extension: Flexion (+) / Extension (-)
+#4. Upper Thoracic (Rib Cage) Rotation: Left (+) / Right (-)
+#5|0 Shoulder Flexion/Extension: Flexion (-) / Extension (+)
+#6|1 Shoulder Abduction/Adduction: Abduction (+) / Adduction (-)
+#7|2 Shoulder Internal/External Rotation: Internal (+) / External (-)
+#8|3 Elbow Flexion/Extension: Flexion (-) / Extension (+)
+#9|4 Forearm Pronation/Supination: Pronation (Left +) / Supination (Right -)
+#10|5 Wrist Flexion/Extension: Flexion (-) / Extension (+)
+#11|6 Metacarpophalangeal (MCP) Flexion/Extension: Flexion (-) / Extension (+)
 
 # Description of movement phases:
 # Phase 0: Preparation - Getting the fingers in position.
@@ -65,35 +76,16 @@ def custom_func_trackPrincipalAndPinkyFingerAboveKey(controller: PenaltyControll
 
     return markers_diff_key
 
-def custom_func_track_principal_finger_pi_in_two_global_axis(controller: PenaltyController, segment: str) -> MX:
-    rotation_matrix_index = biorbd.segment_index(controller.model.model, segment)
-    q = controller.states["q"].mx
-    # global JCS gives the local matrix according to the global matrix
-    principal_finger_axis = controller.model.model.globalJCS(q, rotation_matrix_index).to_mx()  # x finger = y global
-    y = MX.zeros(4)
-    y[:4] = np.array([0, 1, 0, 1])
-    principal_finger_y = principal_finger_axis @ y
-    principal_finger_y = principal_finger_y[:3, :]
-
-    global_y = MX.zeros(3)
-    global_y[:3] = np.array([0, 1, 0])
-
-    teta = acos(dot(principal_finger_y, global_y[:3]))
-    output_casadi = controller.mx_to_cx("scal_prod", teta, controller.states["q"])
-
-    return output_casadi
-
-
 def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./With.bioMod"
-        dof_wrist_finger = [7, 8]
-        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6]
+        dof_wrist_finger = [10, 11]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     else:
         biorbd_model_path = "./Without.bioMod"
-        dof_wrist_finger = [4, 5]
-        all_dof_except_wrist_finger = [0, 1, 2, 3]
+        dof_wrist_finger = [5, 6]
+        all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -147,6 +139,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             first_marker="finger_marker",
             second_marker="Key1_Top",
         )
+
     else:
         constraints.add(
             ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -206,12 +199,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             # min_bound=-0.1, max_bound=0.1,
         )
 
-    constraints.add(
-        ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=3, node=Node.END,
-        first_marker="MCP_marker",
-        second_marker="key1_above",
-    )
+    # constraints.add(
+    #     ConstraintFcn.SUPERIMPOSE_MARKERS,
+    #     phase=3, node=Node.END,
+    #     first_marker="MCP_marker",
+    #     second_marker="key1_above",
+    # )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
@@ -221,15 +214,15 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     for phase in all_phases:
-        # To block ulna rotation before the key pressing.
-        constraints.add(
-            ConstraintFcn.TRACK_STATE,
-            phase=phase, node=Node.ALL,
-            key="qdot",
-            index=all_dof_except_wrist_finger[-2],  # prosupination
-            min_bound=-1, max_bound=1,
-            quadratic=False,
-        )
+        # # To block ulna rotation before the key pressing.
+        # constraints.add(
+        #     ConstraintFcn.TRACK_STATE,
+        #     phase=phase, node=Node.ALL,
+        #     key="qdot",
+        #     index=all_dof_except_wrist_finger[-2],  # prosupination
+        #     min_bound=-1, max_bound=1,
+        #     quadratic=False,
+        # )
 
         # To keep the pinky finger on the right of the principal finger.
         constraints.add(
@@ -276,39 +269,39 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # the specified bounds for each joint: +/- 3 rad/s for Pelvis, Thorax, and Shoulder, +/- 4 or 5 rad/s for the Elbow,
         # and +/- 15 rad/s for the Wrist and Finger.
 
-        # if allDOF:
-        #
-        #     x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5], :] = -3
-        #     x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5], :] = 3
-        #
-        #     x_bounds[phase]["qdot"].min[[6], :] = -4
-        #     x_bounds[phase]["qdot"].max[[6], :] = 4
-        #
-        #     x_bounds[phase]["qdot"].min[[7, 8], :] = -15
-        #     x_bounds[phase]["qdot"].max[[7, 8], :] = 15
-        #
-        # else:
-        #
-        #     x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -3
-        #     x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 3
-        #
-        #     x_bounds[phase]["qdot"].min[[3], :] = -4
-        #     x_bounds[phase]["qdot"].max[[3], :] = 4
-        #
-        #     x_bounds[phase]["qdot"].min[[4, 5], :] = -15
-        #     x_bounds[phase]["qdot"].max[[4, 5], :] = 15
+        if allDOF:
+
+            x_bounds[phase]["qdot"].min[[0, 1, 2, 3, 4, 5, 6, 7], :] = -3
+            x_bounds[phase]["qdot"].max[[0, 1, 2, 3, 4, 5, 6, 7], :] = 3
+
+            x_bounds[phase]["qdot"].min[[8, 9], :] = -4
+            x_bounds[phase]["qdot"].max[[8, 9], :] = 4
+
+            x_bounds[phase]["qdot"].min[[10, 11], :] = -15
+            x_bounds[phase]["qdot"].max[[10, 11], :] = 15
+
+        else:
+
+            x_bounds[phase]["qdot"].min[[0, 1, 2], :] = -3
+            x_bounds[phase]["qdot"].max[[0, 1, 2], :] = 3
+
+            x_bounds[phase]["qdot"].min[[3, 4], :] = -4
+            x_bounds[phase]["qdot"].max[[3, 4], :] = 4
+
+            x_bounds[phase]["qdot"].min[[5, 6], :] = -15
+            x_bounds[phase]["qdot"].max[[5, 6], :] = 15
 
     # Set the initial node value for the pelvis in the first phase to 0.0.
     # The first 0 in x_bounds[0] specifies the phase,
     # the [[0], 0] targets the pelvis (index 0) at the initial node.
 
-    # if allDOF:
-    #
-    #     x_bounds[0]["q"][[0], 0] = 0
-    #     x_bounds[0]["q"][[1], 0] = 0
-    #
-    #     x_bounds[4]["q"][[0], 2] = 0
-    #     x_bounds[4]["q"][[1], 2] = 0
+    if allDOF:
+
+        x_bounds[0]["q"][[0], 0] = 0
+        x_bounds[0]["q"][[1], 0] = 0
+
+        x_bounds[4]["q"][[0], 2] = 0
+        x_bounds[4]["q"][[1], 2] = 0
 
     # Define control path constraint and initial guess
     tau_min, tau_max, tau_init = -100, 100, 0
@@ -338,29 +331,55 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         ode_solver=ode_solver,
     )
 
-
 def main():
-    """
-    Defines a multiphase ocp and animate the results
-    """
-    print(os.getcwd())
+
+    print("Welcome to the Piano Optimization Program!")
+    mode = input("Do you want to generate all conditions together (enter 'all') or just one by one (enter 'one')? ")
+
     polynomial_degree = 4
-    allDOF = False #True means all DOF, False means no thorax
-    pressed = True #False means Struck
-    dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
+    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results"
+    resultsDirName = input("Please enter the folder name e.g. Version_1: ")
 
-    if allDOF:
-        saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
-        nq = 11
+
+
+    dirName = os.path.join(baseDirName, resultsDirName)
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(dirName):
+        os.makedirs(dirName)
+
+    conditions = [
+        {"allDOF": True, "pressed": True, "description": "Pressed with Thorax"},
+        {"allDOF": True, "pressed": False, "description": "Struck with Thorax"},
+        {"allDOF": False, "pressed": True, "description": "Pressed without Thorax"},
+        {"allDOF": False, "pressed": False, "description": "Struck without Thorax"},
+    ]
+
+    if mode.lower() == 'all':
+        for condition in conditions:
+            process_condition(condition, polynomial_degree, dirName)
+    elif mode.lower() == 'one':
+        print("Select a condition to generate:")
+        for i, condition in enumerate(conditions, start=1):
+            print(f"{i}: {condition['description']}")
+        choice = int(input("Enter the number of the condition you want to generate: ")) - 1
+        if 0 <= choice < len(conditions):
+            process_condition(conditions[choice], polynomial_degree, dirName)
+        else:
+            print("Invalid choice. Please restart the program and select a valid number.")
     else:
-        saveName = dirName + ("Pressed" if pressed else "Struck") +"_without_Thorax.pckl"
-        nq = 6
+        print("Invalid mode selected. Please restart the program and enter 'all' or 'one'.")
 
+def process_condition(condition, polynomial_degree, dirName):
+    allDOF = condition["allDOF"]
+    pressed = condition["pressed"]
+
+    saveName = os.path.join(dirName, f"{'Pressed' if pressed else 'Struck'}_{'with' if allDOF else 'without'}_Thorax.pckl")
+
+    # Assume the prepare_ocp function and related setup are defined elsewhere in the script
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
-
     ocp.add_plot_penalty(CostType.ALL)
 
-    # # --- Solve the program --- # #
     solv = Solver.IPOPT(show_online_optim=False)
     solv.set_maximum_iterations(1000)
     solv.set_linear_solver("ma57")
@@ -374,8 +393,6 @@ def main():
         parameters=sol.parameters,
         iterations=sol.iterations,
         cost=np.array(sol.cost)[0][0],
-        # detailed_cost=sol.detailed_cost,
-        # real_time_to_optimize=sol.real_time_to_optimize,
         param_scaling=[nlp.parameters.scaling for nlp in ocp.nlp],
         phase_time=sol.phase_time,
         Time=sol.time,
@@ -383,6 +400,7 @@ def main():
 
     with open(saveName, "wb") as file:
         pickle.dump(data, file)
+    print(f"Saved results to {saveName}")
 
 if __name__ == "__main__":
     main()

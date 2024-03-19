@@ -3,18 +3,37 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pickle
 
-allDOF = False  # True means all DOF, False means no thorax
-pressed = True  # False means Struck
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
+def get_user_input():
+
+    while True:
+        all_dof = input("Include thorax? (y/n): ").lower()
+        if all_dof in ['y', 'n']:
+            all_dof = all_dof == 'y'
+            break
+        else:
+            print("Invalid input. Please enter 'y' or 'n'.")
+
+    while True:
+        pressed = input("Show 'Pressed' or 'Struck' condition? (p/s): ").lower()
+        if pressed in ['p', 's']:
+            pressed = pressed == 'p'
+            break
+        else:
+            print("Invalid input. Please enter 'p' or 's'.")
+
+    return all_dof, pressed
+
+allDOF, pressed = get_user_input()
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/V_1/"
 
 if allDOF:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
 else:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
 
-biorbd_model_path = "With.bioMod" if allDOF else "Without.bioMod"
+biorbd_model_path = "./With.bioMod" if allDOF else "./Without.bioMod"
 
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_without_Thorax.pckl", "rb") as file:
+with open(saveName, "rb") as file:
     new_dict = pickle.load(file)
 
 b = bioviz.Viz(

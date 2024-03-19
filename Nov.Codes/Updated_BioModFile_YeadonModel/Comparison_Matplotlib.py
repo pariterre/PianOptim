@@ -8,25 +8,40 @@ from scipy.interpolate import interp1d
 def degrees(radians):
     return np.degrees(radians)
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
-typeTouch = "Pressed" #"Struck" #
+def get_user_input():
 
-# Load data_1
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_with_Thorax.pckl",
-          "rb") as file:
+    while True:
+        pressed = input("Show 'Pressed' or 'Struck' condition? (p/s): ").lower()
+        if pressed in ['p', 's']:
+            pressed = pressed == 'p'
+            break
+        else:
+            print("Invalid input. Please enter 'p' or 's'.")
+
+    return pressed
+
+pressed = get_user_input()
+
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/V_1/"
+
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Pressed_without_Thorax.pckl",
-          "rb") as file:
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_2 = pickle.load(file)
+
 
 # Process specific points for data_1 and data_2
 specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(data_1["phase_time"]))]
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = typeTouch+ "With"
-label_2 = typeTouch+ "Without"
+label_1 = ("Pressed_" if pressed else "Struck_")+ "With"
+label_2 = ("Pressed_" if pressed else "Struck_")+ "Without"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -58,28 +73,6 @@ concatenated_array_q_s_2 = degrees(np.concatenate(array_q_s_2, axis=1))
 concatenated_array_qdot_s_2 = degrees(np.concatenate(array_qdot_s_2, axis=1))
 concatenated_array_tau_s_2 = np.concatenate(array_tau_s_2, axis=1)
 
-
-# # Creating finger arrays
-# array1 = concatenated_array_tau_s_2[6,:]  # shorter array with 75 elements
-# hand_pressed = concatenated_array_tau_s_1[6,:]  # longer array with 81 elements
-#
-# # Creating an interpolation function for the shorter array
-# interp_function = interp1d(np.linspace(0, 1, len(array1)), array1)
-#
-# # Using the interpolation function to create a new array with the length of the longer array
-# interpolated_array_hand_struck = interp_function(np.linspace(0, 1, len(hand_pressed)))
-#
-# # Creating wrist arrays
-# array1 = concatenated_array_tau_s_2[5,:]  # shorter array with 75 elements
-# wrist_pressed = concatenated_array_tau_s_1[5,:]  # longer array with 81 elements
-#
-# # Creating an interpolation function for the shorter array
-# interp_function = interp1d(np.linspace(0, 1, len(array1)), array1)
-#
-# # Using the interpolation function to create a new array with the length of the longer array
-# interpolated_array_wrist_struck = interp_function(np.linspace(0, 1, len(wrist_pressed)))
-
-
 # Generate time array for plotting for both data sets
 time_arrays_1 = [
     np.linspace(specific_points_s_1[i], specific_points_s_1[i + 1], len(array_q_s_1[i][0]))
@@ -95,26 +88,27 @@ concatenated_array_time_s_2 = np.concatenate(time_arrays_2)
 
 # Plotting
 Name = [
-    "Pelvic Tilt, Anterior (-) and Posterior (+) Rotation",
-    "Thorax_1, Flexion (-) and Extension (+)",
-    "Thorax_1, Left (+) and Right (-) Rotation",
-    "rib_1, Flexion (-) and Extension (+)",
-    "rib_2, Left (+) and Right (-) Rotation",
-    "Right Shoulder, Flexion (+) and Extension (-)Abduction (-) and Adduction (+)",
-    "Right Shoulder, Abduction (-) and Adduction (+)",
+    "Pelvic Tilt, Anterior (+) and Posterior (-) Rotation",
+    "Thoracic, Flexion (+) and Extension (-)",
+    "Thoracic, Left (+) and Right (-) Rotation",
+    "Upper Thoracic (Rib Cage), Flexion (+) and Extension (-)",
+    "Upper Thoracic (Rib Cage), Left (+) and Right (-) Rotation",
+    "Right Shoulder, Flexion (-) and Extension (+)",
+    "Right Shoulder, Abduction (+) and Adduction (-)",
     "Right Shoulder, Internal (+) and External (-) Rotation",
-    "Elbow, Flexion (+) and Extension (-)",
+    "Elbow, Flexion (-) and Extension (+)",
+    "Elbow, Left (+) and Right (-) Rotation",
     "Wrist, Flexion (-) and Extension (+)",
-    "MCP, Flexion (+) and Extension (-)",
+    "MCP, Flexion (-) and Extension (+)",
 ]
-#
 
-for i in [-1,-2]:
+for i in range(-11, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q
     axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-    axs[0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2)
+    if i >= -6:  # Check if data2 has this index
+        axs[0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[0].fill_betweenx(axs[0].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[0].set_title(Name[i])
     axs[0].set_ylabel("θ (deg)")
@@ -122,14 +116,16 @@ for i in [-1,-2]:
 
     # Plot for qdot
     axs[1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
-    axs[1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2)
+    if i >= -6:  # Check if data2 has this index
+        axs[1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[1].fill_betweenx(axs[1].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
     axs[1].legend()
 
     # Plot for tau
     axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
-    axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2)
+    if i >= -6:  # Check if data2 has this index
+        axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[2].set_ylabel(r"$\tau$ (N/m)")
     axs[2].set_xlabel("Time (sec)")
@@ -145,15 +141,30 @@ for i in [-1,-2]:
         # Add vertical lines for specific points in data_1 and data_2
         for point in specific_points_s_1:
             ax.axvline(x=point, color="k", linestyle=":")
+        if i >= -6:
+            for point in specific_points_s_2:
+                ax.axvline(x=point, color="k", linestyle=":")
 
     plt.tight_layout()
 plt.show()
 
-# Calculations outside the loop
-I1 = (np.trapz(abs(concatenated_array_tau_s_1[-1, :]), x=concatenated_array_time_s_1) +
-      np.trapz(abs(concatenated_array_tau_s_1[-2, :]), x=concatenated_array_time_s_1))
+# First part: Using squared values
+I1_squared = (np.trapz(concatenated_array_tau_s_1[-1, :]**2, x=concatenated_array_time_s_1) +
+             np.trapz(concatenated_array_tau_s_1[-2, :]**2, x=concatenated_array_time_s_1))
+I2_squared = (np.trapz(concatenated_array_tau_s_2[-1, :]**2, x=concatenated_array_time_s_2) +
+             np.trapz(concatenated_array_tau_s_2[-2, :]**2, x=concatenated_array_time_s_2))
 
-I2 =(np.trapz(abs(concatenated_array_tau_s_2[-1, :]), x=concatenated_array_time_s_1) +
-     np.trapz(abs(concatenated_array_tau_s_2[-2, :]), x=concatenated_array_time_s_1))
+print(I1_squared, I2_squared, (I1_squared-I2_squared)/I1_squared*100)
 
-print(I1, I2, (I1-I2)/I2*100)
+# Second part: Using absolute values
+abs_concatenated_array_tau_s_1 = np.abs(concatenated_array_tau_s_1)
+abs_concatenated_array_tau_s_2 = np.abs(concatenated_array_tau_s_2)
+
+I1_absolute_Values = (np.trapz(abs_concatenated_array_tau_s_1[-1, :], x=concatenated_array_time_s_1) +
+                      np.trapz(abs_concatenated_array_tau_s_1[-2, :], x=concatenated_array_time_s_1))
+I2_absolute_Values = (np.trapz(abs_concatenated_array_tau_s_2[-1, :], x=concatenated_array_time_s_2) +
+                      np.trapz(abs_concatenated_array_tau_s_2[-2, :], x=concatenated_array_time_s_2))
+
+print(I1_absolute_Values, I2_absolute_Values, (I1_absolute_Values - I2_absolute_Values) / I1_absolute_Values * 100)
+
+
