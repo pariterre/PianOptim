@@ -1,4 +1,5 @@
-from casadi import MX
+from casadi import MX, acos, dot, pi, fmin, fmax
+import time
 import numpy as np
 import biorbd_casadi as biorbd
 import pickle
@@ -22,6 +23,7 @@ from bioptim import (
     ConstraintList,
     OdeSolver,
     Solver,
+    MultinodeObjectiveList,
     Axis,
 )
 
@@ -96,15 +98,20 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     if pressed:
-        # Velocity profile found thanks to the motion capture datas.
+        # Profiles found thanks to the motion capture datas.
+        # vel_push_array = [0.0, -0.756, -1.120, -1.210, -0.873, -0.450, -0.058,]
         vel_push_array = [0.0, -0.114, -0.181, -0.270, -0.347, -0.291, -0.100, ]
         n_shooting = (30, 7, 9, 10, 10)
-        phase_time = (0.3, 0.044, 0.051, 0.15, 0.15)
+        phase_time = (0.3, 0.024, 0.0605, 0.15, 0.15)
+        Force_Profile = [57, 50, 43, 35, 26, 17, 8, 4, 0]
+
 
     else:
+        # vel_push_array = [-1.444, -1.343, -1.052, -0.252, -0.196, -0.014,]
         vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
         n_shooting = (30, 6, 9, 10, 10)
-        phase_time = (0.3, 0.027, 0.058, 0.15, 0.15)
+        phase_time = (0.3, 0.020, 0.0501, 0.15, 0.15)
+        Force_Profile = [54, 47, 41, 35, 28, 18, 10, 4, 0]
 
     # Dynamics
     dynamics = DynamicsList()
@@ -122,7 +129,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=400, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=200, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
@@ -165,7 +172,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
             phase=1, node=node,
             marker_index=0, axes=Axis.Z,
-            min_bound=-0.01, max_bound=0.01,
+            min_bound=-0.93, max_bound=0.93,
             target=vel_push_array[node],
         )
 
@@ -176,7 +183,24 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="key1_base",
     )
 
-    ForceProfile = [30, 28, 24, 20, 16, 12, 8, 4, 0]
+    # finger_marker
+    # x_base = -0.16104042053222656
+    # y_base = -0.5356114196777344 + 0.025
+    #
+    # # Calculating min_bound and max_bound with adjustments
+    # min_bound = np.array([x_base - 0.01, y_base - 0.005])
+    # max_bound = np.array([x_base + 0.01, y_base + 0.005])
+    #
+
+    # constraints.add(
+    #     ConstraintFcn.TRACK_MARKERS,
+    #     phase=1,
+    #     node=Node.INTERMEDIATES,
+    #     marker_index=0,
+    #     axes=[Axis.X, Axis.Y],
+    #     min_bound=np.array([-0.17104042, -0.51561142]),
+    #     max_bound=np.array([-0.15104042, -0.50561142]),
+    # )
 
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
@@ -184,7 +208,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
                 ConstraintFcn.TRACK_CONTACT_FORCES,
                 phase=2, node=node,
                 contact_index=idx,
-                min_bound=-ForceProfile[node] / 3, max_bound=ForceProfile[node] / 3,
+                min_bound=-Force_Profile[node] / 3, max_bound=Force_Profile[node] / 3,
                 quadratic=False,
             )
 
@@ -192,7 +216,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_CONTACT_FORCES,
             phase=2, node=node,
             contact_index=2,
-            target=ForceProfile[node],
+            target=Force_Profile[node],
             quadratic=False,
             # min_bound=-0.1, max_bound=0.1,
         )
@@ -238,13 +262,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             min_bound=0,
             max_bound=np.inf,
         )
-        # constraints.add(
-        #     custom_func_trackPrincipalAndPinkyFingerAboveKey,
-        #     phase=phase, node=Node.ALL,
-        #     marker="finger_marker_RightPinky",
-        #     min_bound=0,
-        #     max_bound=np.inf,
-        # )
 
     phase_transition = PhaseTransitionList()
     phase_transition.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=1)

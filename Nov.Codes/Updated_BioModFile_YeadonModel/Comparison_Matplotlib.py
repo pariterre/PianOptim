@@ -107,7 +107,7 @@ for i in range(-11, 0):
 
     # Plot for q
     axs[0].plot(concatenated_array_time_s_1, concatenated_array_q_s_1[i, :], color="red", label=label_1)
-    if i >= -6:  # Check if data2 has this index
+    if i >= -7:  # Check if data2 has this index
         axs[0].plot(concatenated_array_time_s_2, concatenated_array_q_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[0].fill_betweenx(axs[0].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[0].set_title(Name[i])
@@ -116,7 +116,7 @@ for i in range(-11, 0):
 
     # Plot for qdot
     axs[1].plot(concatenated_array_time_s_1, concatenated_array_qdot_s_1[i, :], color="red", label=label_1)
-    if i >= -6:  # Check if data2 has this index
+    if i >= -7:  # Check if data2 has this index
         axs[1].plot(concatenated_array_time_s_2, concatenated_array_qdot_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[1].fill_betweenx(axs[1].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[1].set_ylabel(r"$\dot{\theta}$ (deg/sec)")
@@ -124,7 +124,7 @@ for i in range(-11, 0):
 
     # Plot for tau
     axs[2].step(concatenated_array_time_s_1, concatenated_array_tau_s_1[i, :], color="red", label=label_1)
-    if i >= -6:  # Check if data2 has this index
+    if i >= -7:  # Check if data2 has this index
         axs[2].step(concatenated_array_time_s_2, concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2)
     axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
     axs[2].set_ylabel(r"$\tau$ (N/m)")
@@ -141,7 +141,7 @@ for i in range(-11, 0):
         # Add vertical lines for specific points in data_1 and data_2
         for point in specific_points_s_1:
             ax.axvline(x=point, color="k", linestyle=":")
-        if i >= -6:
+        if i >= -7:
             for point in specific_points_s_2:
                 ax.axvline(x=point, color="k", linestyle=":")
 
