@@ -11,25 +11,40 @@ def degrees(radians):
 def calculate_work(tau, delta_q):
     return np.sum(tau * delta_q)
 
-dirName = "/home/alpha/Desktop/Class/"
-typeTouch = "Struck" #"Pressed" #
+def get_user_input():
 
-# Load data_1
-with open(dirName + typeTouch + "_with_Thorax.pckl",
-          "rb") as file:
+    while True:
+        pressed = input("Show 'Pressed' or 'Struck' condition? (p/s): ").lower()
+        if pressed in ['p', 's']:
+            pressed = pressed == 'p'
+            break
+        else:
+            print("Invalid input. Please enter 'p' or 's'.")
+
+    return pressed
+
+pressed = get_user_input()
+
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Updated_Profile_W200/"
+
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
-with open(dirName + typeTouch + "_without_Thorax.pckl",
-          "rb") as file:
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_2 = pickle.load(file)
+
 
 # Process specific points for data_1 and data_2
 specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(data_1["phase_time"]))]
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = typeTouch+ " Touch DT Strategy"
-label_2 = typeTouch+ "Touch ST Strategy"
+label_1 = ("Pressed_" if pressed else "Struck_")+ " Touch DT Strategy"
+label_2 = ("Pressed_" if pressed else "Struck_")+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -76,25 +91,27 @@ concatenated_array_time_s_2 = np.concatenate(time_arrays_2)
 
 # Plotting
 Name = [
-    "Pelvic Tilt, Anterior (-) and Posterior (+) Rotation",
-    "Thorax, Left (+) and Right (-) Rotation",
-    "Thorax, Flexion (-) and Extension (+)",
-    "Right Shoulder, Abduction (-) and Adduction (+)",
+    "Pelvic Tilt, Anterior (+) and Posterior (-) Rotation",
+    "Thoracic, Flexion (+) and Extension (-)",
+    "Thoracic, Left (+) and Right (-) Rotation",
+    "Upper Thoracic (Rib Cage), Flexion (+) and Extension (-)",
+    "Upper Thoracic (Rib Cage), Left (+) and Right (-) Rotation",
+    "Right Shoulder, Flexion (-) and Extension (+)",
+    "Right Shoulder, Abduction (+) and Adduction (-)",
     "Right Shoulder, Internal (+) and External (-) Rotation",
-    "Right Shoulder, Flexion (+) and Extension (-)",
-    "Elbow, Flexion (+) and Extension (-)",
-    "Elbow, Pronation (+) and Supination (-)",
+    "Elbow, Flexion (-) and Extension (+)",
+    "Elbow, Left (+) and Right (-) Rotation",
     "Wrist, Flexion (-) and Extension (+)",
-    "MCP, Flexion (+) and Extension (-)",
+    "MCP, Flexion (-) and Extension (+)",
 ]
 #
 num_joints = len(concatenated_array_q_s_1)
 # Initialize the array to store work for each joint in each phase
-w_0 = np.zeros((10, 1))
-w_1 = np.zeros((10, 1))
-w_2 = np.zeros((10, 1))
-w_3 = np.zeros((10, 1))
-w_4 = np.zeros((10, 1))
+w_0 = np.zeros((12, 1))
+w_1 = np.zeros((12, 1))
+w_2 = np.zeros((12, 1))
+w_3 = np.zeros((12, 1))
+w_4 = np.zeros((12, 1))
 
 # Calculate work for each joint in each phase
 for phase in range(5):
@@ -187,7 +204,7 @@ num_phases = len(phases)
 data2_joint_offset = 3
 
 for joint in range(len(Name)):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12, 6))
 
     # Extracting work for the joint across all phases for data_1
     work_data1 = [work_arrays_data1[phase][joint][0] for phase in range(num_phases)]

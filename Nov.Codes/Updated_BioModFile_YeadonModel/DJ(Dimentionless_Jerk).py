@@ -11,16 +11,33 @@ def degrees(radians):
 def calculate_work(tau, delta_q):
     return np.sum(tau * delta_q)
 
-dirName = "/home/alpha/Desktop/Class/"
-typeTouch = "Pressed" #"Struck" #
+def degrees(radians):
+    return np.degrees(radians)
 
-# Load data_1
-with open(dirName + typeTouch + "_with_Thorax.pckl",
-          "rb") as file:
+def get_user_input():
+
+    while True:
+        pressed = input("Show 'Pressed' or 'Struck' condition? (p/s): ").lower()
+        if pressed in ['p', 's']:
+            pressed = pressed == 'p'
+            break
+        else:
+            print("Invalid input. Please enter 'p' or 's'.")
+
+    return pressed
+
+pressed = get_user_input()
+
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Updated_Profile_W200/"
+
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
-with open(dirName + typeTouch + "_without_Thorax.pckl",
-          "rb") as file:
+
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
+with open(saveName, "rb") as file:
     data_2 = pickle.load(file)
 
 # Process specific points for data_1 and data_2
@@ -28,8 +45,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = typeTouch+ " Touch DT Strategy"
-label_2 = typeTouch+ "Touch ST Strategy"
+label_1 = ("Pressed_" if pressed else "Struck_")+ " Touch DT Strategy"
+label_2 = ("Pressed_" if pressed else "Struck_")+ "Touch ST Strategy"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -76,16 +93,18 @@ concatenated_array_time_s_2 = np.concatenate(time_arrays_2)
 
 # Plotting
 Name = [
-    "Pelvic Tilt, Anterior (-) and Posterior (+) Rotation",
-    "Thorax, Left (+) and Right (-) Rotation",
-    "Thorax, Flexion (-) and Extension (+)",
-    "Right Shoulder, Abduction (-) and Adduction (+)",
+    "Pelvic Tilt, Anterior (+) and Posterior (-) Rotation",
+    "Thoracic, Flexion (+) and Extension (-)",
+    "Thoracic, Left (+) and Right (-) Rotation",
+    "Upper Thoracic (Rib Cage), Flexion (+) and Extension (-)",
+    "Upper Thoracic (Rib Cage), Left (+) and Right (-) Rotation",
+    "Right Shoulder, Flexion (-) and Extension (+)",
+    "Right Shoulder, Abduction (+) and Adduction (-)",
     "Right Shoulder, Internal (+) and External (-) Rotation",
-    "Right Shoulder, Flexion (+) and Extension (-)",
-    "Elbow, Flexion (+) and Extension (-)",
-    "Elbow, Pronation (+) and Supination (-)",
+    "Elbow, Flexion (-) and Extension (+)",
+    "Elbow, Left (+) and Right (-) Rotation",
     "Wrist, Flexion (-) and Extension (+)",
-    "MCP, Flexion (+) and Extension (-)",
+    "MCP, Flexion (-) and Extension (+)",
 ]
 
 def calculate_dimensionless_jerk(q, dt):
@@ -172,19 +191,3 @@ for joint_name, (jerks_data1, jerks_data2) in dimensionless_jerk_results.items()
     plt.legend()
     plt.grid(axis='y')
 plt.show()
-
-# Convert Dimensionless Jerk results into a DataFrame
-df_dimensionless_jerk_data1 = pd.DataFrame(index=phases)
-df_dimensionless_jerk_data2 = pd.DataFrame(index=phases)
-
-for joint_name, (jerks_data1, jerks_data2) in dimensionless_jerk_results.items():
-    df_dimensionless_jerk_data1[joint_name] = jerks_data1
-    df_dimensionless_jerk_data2[joint_name] = jerks_data2
-
-# Transpose DataFrames for a better layout (joints as columns, phases as rows)
-df_dimensionless_jerk_data1 = df_dimensionless_jerk_data1.T
-df_dimensionless_jerk_data2 = df_dimensionless_jerk_data2.T
-
-with pd.ExcelWriter(f"{dirName}dimensionless_jerk_results_{typeTouch}.xlsx") as writer:
-    df_dimensionless_jerk_data1.to_excel(writer, sheet_name='With Thorax & Pelvic')
-    df_dimensionless_jerk_data2.to_excel(writer, sheet_name='Without Thorax & Pelvic')
