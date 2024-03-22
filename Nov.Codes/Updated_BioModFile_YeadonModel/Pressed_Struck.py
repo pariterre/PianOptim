@@ -128,6 +128,11 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
 
+    for phase in [0, 1]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=dof_wrist_finger
+        )
+
     # Constraints
     constraints = ConstraintList()
     if pressed:

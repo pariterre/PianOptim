@@ -26,7 +26,7 @@ dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonMo
 
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
-with open(saveName, "rb") as file:
+with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/X/Struck_with_Thorax.pckl", "rb") as file:
     data_1 = pickle.load(file)
 
 

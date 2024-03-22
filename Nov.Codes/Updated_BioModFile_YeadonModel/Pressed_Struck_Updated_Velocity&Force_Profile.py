@@ -80,7 +80,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./With.bioMod"
         dof_wrist_finger = [10, 11]
-        all_dof_except_wrist_finger = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        Shoulder_Elbow= [5, 6, 7, 8, 9]
+        Pelvis_Trunk = [0, 1, 2, 3, 4]
 
     else:
         biorbd_model_path = "./Without.bioMod"
@@ -125,14 +126,23 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # Minimize Torques
     objective_functions = ObjectiveList()
     for phase in all_phases:
+
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=-1000, index=Pelvis_Trunk
+        )
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=Shoulder_Elbow
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
+        )
+
+    for phase in [0, 1]:
+        objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=dof_wrist_finger
         )
 
     # Constraints
