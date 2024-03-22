@@ -82,6 +82,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         dof_wrist_finger = [10, 11]
         Shoulder_Elbow= [5, 6, 7, 8, 9]
         Pelvis_Trunk = [0, 1, 2, 3, 4]
+        all_dof_except_wrist_finger=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     else:
         biorbd_model_path = "./Without.bioMod"
@@ -128,10 +129,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=-1000, index=Pelvis_Trunk
-        )
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=Shoulder_Elbow
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger

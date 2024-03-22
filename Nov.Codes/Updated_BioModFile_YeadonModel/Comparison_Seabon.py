@@ -24,11 +24,11 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Updated_Profile_W200/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/X/"
 
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
-with open("/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/X/Struck_with_Thorax.pckl", "rb") as file:
+with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
 
