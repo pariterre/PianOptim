@@ -24,7 +24,7 @@ def get_user_input():
     return all_dof, pressed
 
 allDOF, pressed = get_user_input()
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/X_500_newConstraints/"
 
 if allDOF:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
@@ -35,6 +35,11 @@ biorbd_model_path = "./With.bioMod" if allDOF else "./Without.bioMod"
 
 with open(saveName, "rb") as file:
     new_dict = pickle.load(file)
+def print_all_camera_parameters(biorbd_viz: bioviz.Viz):
+    print("Camera roll: ", biorbd_viz.get_camera_roll())
+    print("Camera zoom: ", biorbd_viz.get_camera_zoom())
+    print("Camera position: ", biorbd_viz.get_camera_position())
+    print("Camera focus point: ", biorbd_viz.get_camera_focus_point())
 
 b = bioviz.Viz(
     biorbd_model_path,
@@ -59,6 +64,8 @@ all_q = np.hstack(
         new_dict["states"][4]["q"],
     )
 )
+
+print_all_camera_parameters(b)
 
 b.load_movement(all_q)
 b.exec()
@@ -150,7 +157,7 @@ plt.show()
 #
 # # Save visualization as a video
 # b.start_recording("side_view.ogv")
-# num_frames = 200
+# num_frames = 330
 # for frame in range(num_frames):
 #     b.movement_slider[0].setValue(frame)
 #     b.add_frame()

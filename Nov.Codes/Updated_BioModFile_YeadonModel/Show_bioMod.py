@@ -1,6 +1,6 @@
 import bioviz
 
-model_path = "./Without.bioMod"
+model_path = "./With.bioMod"
 
 b = bioviz.Viz(
     model_path,
