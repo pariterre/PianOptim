@@ -132,7 +132,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=300, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
@@ -140,7 +140,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     for phase in [0, 1]:
         objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=dof_wrist_finger
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=300, index=dof_wrist_finger
         )
 
     # Constraints
@@ -192,23 +192,23 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     # finger_marker
-    # x_base = -0.16104042053222656
-    # y_base = -0.5356114196777344 + 0.025
-    #
-    # # Calculating min_bound and max_bound with adjustments
-    # min_bound = np.array([x_base - 0.01, y_base - 0.005])
-    # max_bound = np.array([x_base + 0.01, y_base + 0.005])
-    #
+    x_base = -0.16104042053222656
+    y_base = -0.5356114196777344 + 0.025
 
-    # constraints.add(
-    #     ConstraintFcn.TRACK_MARKERS,
-    #     phase=1,
-    #     node=Node.INTERMEDIATES,
-    #     marker_index=0,
-    #     axes=[Axis.X, Axis.Y],
-    #     min_bound=np.array([-0.17104042, -0.51561142]),
-    #     max_bound=np.array([-0.15104042, -0.50561142]),
-    # )
+    # Calculating min_bound and max_bound with adjustments
+    min_bound = np.array([x_base - 0.01, y_base - 0.005])
+    max_bound = np.array([x_base + 0.01, y_base + 0.005])
+
+
+    constraints.add(
+        ConstraintFcn.TRACK_MARKERS,
+        phase=0,
+        node=Node.INTERMEDIATES,
+        marker_index=0,
+        axes=[Axis.X, Axis.Y],
+        min_bound=np.array([-0.17104042, -0.51561142]),
+        max_bound=np.array([-0.15104042, -0.50561142]),
+    )
 
     for node in range(n_shooting[2]):
         for idx in [0, 1]:

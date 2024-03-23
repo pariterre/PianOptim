@@ -299,11 +299,11 @@ marker Key2_base
     // Indicates the pressed state (Key descend, not pressed or struck touch) of the second key
 endmarker
 
-segment Piano
-	parent ground
+//segment Piano
+//	parent ground
 
-	meshfile Model_mesh/piano.stl
-	meshscale 0.005 0.005 0.005
-	meshrt -pi/2 0 pi xyz 0.025 -0.76+0.025 -0.25
+//	meshfile Model_mesh/piano.stl
+//	meshscale 0.005 0.005 0.005
+//	meshrt -pi/2 0 pi xyz 0.025 -0.76+0.025 -0.25
 
-endsegment
+//endsegment
