@@ -24,7 +24,7 @@ def get_user_input():
     return all_dof, pressed
 
 allDOF, pressed = get_user_input()
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/X_500_newConstraints/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/"
 
 if allDOF:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
@@ -44,14 +44,14 @@ def print_all_camera_parameters(biorbd_viz: bioviz.Viz):
 b = bioviz.Viz(
     biorbd_model_path,
     markers_size=0.005,
-    contacts_size=0.010,
+    contacts_size=0.0005,
     show_floor=False,
     show_segments_center_of_mass=True,
     show_global_ref_frame=True,
     show_global_center_of_mass=True,
     show_global_jcs=True,
     show_markers=True,
-    n_frames=100,
+    n_frames=20,
     show_local_ref_frame=False,
 )
 
@@ -70,9 +70,6 @@ print_all_camera_parameters(b)
 b.load_movement(all_q)
 b.exec()
 plt.show()
-
-
-
 
 
 # import bioviz

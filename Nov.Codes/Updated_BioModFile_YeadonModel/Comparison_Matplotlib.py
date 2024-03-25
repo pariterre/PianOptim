@@ -22,10 +22,10 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Updated_Profile_Good_Version_W200/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/"
 
 
-saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
 with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
@@ -102,7 +102,7 @@ Name = [
     "MCP, Flexion (-) and Extension (+)",
 ]
 
-for i in range(-11, 0):
+for i in range(-7, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1)
 
     # Plot for q

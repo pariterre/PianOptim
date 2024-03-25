@@ -80,6 +80,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     if allDOF:
         biorbd_model_path = "./With.bioMod"
         dof_wrist_finger = [10, 11]
+        wrist= [10]
         Shoulder_Elbow= [5, 6, 7, 8, 9]
         Pelvis_Trunk = [0, 1, 2, 3, 4]
         all_dof_except_wrist_finger=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -88,6 +89,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         biorbd_model_path = "./Without.bioMod"
         dof_wrist_finger = [5, 6]
         all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
+        wrist= [5]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -129,18 +131,18 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.0001, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=500, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
-
+    #
     for phase in [0, 1]:
         objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=500, index=dof_wrist_finger
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1, index=wrist
         )
 
     # Constraints
@@ -191,27 +193,27 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="key1_base",
     )
 
-    if pressed==False:
-
-        if allDOF==False:
-
-            # finger_marker
-            x_base = -0.16104042053222656
-            y_base = -0.5356114196777344 + 0.025
-
-            # Calculating min_bound and max_bound with adjustments
-            min_bound = np.array([x_base - 0.01, y_base - 0.005])
-            max_bound = np.array([x_base + 0.01, y_base + 0.005])
-
-            constraints.add(
-                ConstraintFcn.TRACK_MARKERS,
-                phase=0,
-                node=Node.INTERMEDIATES,
-                marker_index=0,
-                axes=[Axis.X, Axis.Y],
-                min_bound=np.array([-0.20, -0.52]),
-                max_bound=np.array([-0.12, -0.48]),
-            )
+    # if pressed==False:
+    #
+    #     if allDOF==False:
+    #
+    #         # finger_marker
+    #         x_base = -0.16104042053222656
+    #         y_base = -0.5356114196777344 + 0.025
+    #
+    #         # Calculating min_bound and max_bound with adjustments
+    #         min_bound = np.array([x_base - 0.05, y_base - 0.05])
+    #         max_bound = np.array([x_base + 0.05, y_base + 0.05])
+    #
+    #         constraints.add(
+    #             ConstraintFcn.TRACK_MARKERS,
+    #             phase=0,
+    #             node=Node.INTERMEDIATES,
+    #             marker_index=0,
+    #             axes=[Axis.X, Axis.Y],
+    #             min_bound=np.array([-0.22, -0.56]),
+    #             max_bound=np.array([-0.11, -0.46]),
+    #         )
 
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
@@ -262,7 +264,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             custom_func_right_relative_To_PrincipalTracker,
             phase=phase, node=Node.ALL,
             min_bound=-0.0001,
-            max_bound=0.01,
+            max_bound=0.006,
         )
 
      # To keep the index and the small finger above the bed key.
@@ -363,7 +365,7 @@ def main():
     mode = input("Do you want to generate all conditions together (enter 'all') or just one by one (enter 'one')? ")
 
     polynomial_degree = 4
-    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results"
+    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March"
     resultsDirName = input("Please enter the folder name e.g. Version_1: ")
 
 

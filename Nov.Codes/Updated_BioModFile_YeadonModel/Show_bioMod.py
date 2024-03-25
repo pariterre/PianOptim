@@ -4,8 +4,8 @@ model_path = "./With.bioMod"
 
 b = bioviz.Viz(
     model_path,
-    markers_size=0.0025,
-    contacts_size=0.00550,
+    markers_size=0.0045,
+    contacts_size=0.000550,
     show_floor=False,
     show_segments_center_of_mass=True,
     show_mass_center=False,
