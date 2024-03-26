@@ -133,7 +133,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.001, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.01, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
@@ -141,7 +141,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
-    #
+
     for phase in [0, 1]:
         objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=wrist
@@ -149,7 +149,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     for phase in [0, 1]:
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=Shoulder
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.1, index=finger
         )
 
     # Constraints
@@ -372,7 +372,7 @@ def main():
     mode = input("Do you want to generate all conditions together (enter 'all') or just one by one (enter 'one')? ")
 
     polynomial_degree = 4
-    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March"
+    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/26March-qdot2"
     resultsDirName = input("Please enter the folder name e.g. Version_1: ")
 
 

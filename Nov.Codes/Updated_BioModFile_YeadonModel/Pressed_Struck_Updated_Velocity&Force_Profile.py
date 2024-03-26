@@ -82,14 +82,14 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         dof_wrist_finger = [10, 11]
         wrist= [10]
         finger= [11]
-        Shoulder_Elbow= [5, 6, 7, 8, 9]
-        Pelvis_Trunk = [0, 1, 2, 3, 4]
+        Shoulder= [5]
         all_dof_except_wrist_finger=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     else:
         biorbd_model_path = "./Without.bioMod"
         dof_wrist_finger = [5, 6]
         all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
+        Shoulder= [0]
         wrist= [5]
         finger= [6]
 
@@ -133,7 +133,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.01, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.001, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
@@ -147,10 +147,10 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=wrist
         )
 
-    for phase in [0, 1]:
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.02, index=finger
-        )
+    # for phase in [0, 1]:
+    #     objective_functions.add(
+    #         ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=Shoulder
+    #     )
 
     # Constraints
     constraints = ConstraintList()
@@ -372,7 +372,7 @@ def main():
     mode = input("Do you want to generate all conditions together (enter 'all') or just one by one (enter 'one')? ")
 
     polynomial_degree = 4
-    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March"
+    baseDirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/26March-qdot2"
     resultsDirName = input("Please enter the folder name e.g. Version_1: ")
 
 
