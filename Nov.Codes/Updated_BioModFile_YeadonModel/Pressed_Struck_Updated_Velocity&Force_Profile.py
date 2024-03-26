@@ -81,6 +81,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         biorbd_model_path = "./With.bioMod"
         dof_wrist_finger = [10, 11]
         wrist= [10]
+        finger= [11]
         Shoulder_Elbow= [5, 6, 7, 8, 9]
         Pelvis_Trunk = [0, 1, 2, 3, 4]
         all_dof_except_wrist_finger=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -90,6 +91,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         dof_wrist_finger = [5, 6]
         all_dof_except_wrist_finger = [0, 1, 2, 3, 4]
         wrist= [5]
+        finger= [6]
 
     all_phases = [0, 1, 2, 3, 4]
 
@@ -131,10 +133,10 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.01, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=300, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=100, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
@@ -142,7 +144,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     #
     for phase in [0, 1]:
         objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=10, index=wrist
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.4, index=wrist
+        )
+
+    for phase in [0, 1]:
+        objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=finger
         )
 
     # Constraints

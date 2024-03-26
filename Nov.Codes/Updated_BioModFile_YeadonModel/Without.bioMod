@@ -205,7 +205,7 @@ segment RightFingers
 		0.0 1.8082061752283924e-05 0.0
 		0.0 0.0 1.4289090794924855e-05
 	meshfile Model_mesh/fingers.stl
-	meshscale 0.004 0.002 0.006
+	meshscale 0.004 0.002 0.005
 	meshrt pi 0 0 xyz 0.085 0.02 0
 
 endsegment
@@ -225,7 +225,7 @@ endmarker
 // Defining a contact point for the Second Finger
 contact contact_finger
     parent RightFingers
-    position 0.015 -0.0025 -0.046782999938
+    position 0.0015 0.0015 -0.046782999938
     axis xyz  // Specifying the axis for the contact point
 endcontact
 
