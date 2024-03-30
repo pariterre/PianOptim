@@ -26,9 +26,12 @@ segment Pelvis
 		0.0 0.0 0.10198389475305641
 
 
-	meshfile Model_mesh/boule.stl
-	meshscale 1.8 1.10126582278481 1.8506493506493509
-	meshrt -0.175 0 0 xyz 0 0 0
+    mesh 0 0 0
+    mesh 0 0 0.177
+
+	//meshfile Model_mesh/boule.stl
+	//meshscale 1.8 1.10126582278481 1.8506493506493509
+	//meshrt -0.175 0 0 xyz 0 0 0
 
 endsegment
 
@@ -48,9 +51,13 @@ segment Stomach
 		0.014539427218143393 0.0 0.0
 		0.0 0.033646083699372976 0.0
 		0.0 0.0 0.04281801298441855
-	meshfile Model_mesh/boule.stl
-	meshscale 2.93 1.7399999999999998 2.1600000000000006
-	meshrt -0.15 0 0 xyz 0 -0.025 0
+
+	mesh 0 0 0
+    mesh 0 0 0.177
+
+	//meshfile Model_mesh/boule.stl
+	//meshscale 2.93 1.7399999999999998 2.1600000000000006
+	//meshrt -0.15 0 0 xyz 0 -0.025 0
 
 endsegment
 
@@ -70,9 +77,13 @@ segment Rib
 		0.04556723931660289 0.0 0.0
 		0.0 0.08993672996879049 0.0
 		0.0 0.0 0.09227389643028029
-	meshfile Model_mesh/thorax.stl
-	meshscale 0.889240506329114 1.10126582278481 0.6099999999999999
-	meshrt -0.15 0 0 xyz 0 -0.025 0
+
+	mesh 0 0 0
+	mesh 0 0 0.18299999999999994
+
+	//meshfile Model_mesh/thorax.stl
+	//meshscale 0.889240506329114 1.10126582278481 0.6099999999999999
+	//meshrt -0.15 0 0 xyz 0 -0.025 0
 
 endsegment
 
@@ -86,9 +97,10 @@ segment Nipple
 		0.027292892152292244 0.0 0.0
 		0.0 0.0747073235655125 0.0
 		0.0 0.0 0.08352192855764505
-	meshfile Model_mesh/boule.stl
-	meshscale 3.5100000000000002 1.7399999999999998 0.65
-	meshrt -0.15 0 0 xyz 0 -0.025 0
+
+	//meshfile Model_mesh/boule.stl
+	//meshscale 3.5100000000000002 1.7399999999999998 0.65
+	//meshrt -0.15 0 0 xyz 0 -0.025 0
 
 endsegment
 
