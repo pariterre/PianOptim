@@ -53,7 +53,7 @@ segment Stomach
 		0.0 0.0 0.04281801298441855
 
 	mesh 0 0 0
-    mesh 0 0 0.177
+    mesh 0 0 0.10800000000000004
 
 	//meshfile Model_mesh/boule.stl
 	//meshscale 2.93 1.7399999999999998 2.1600000000000006
@@ -78,7 +78,7 @@ segment Rib
 		0.0 0.08993672996879049 0.0
 		0.0 0.0 0.09227389643028029
 
-	mesh 0 0 0
+    mesh 0 0 0
 	mesh 0 0 0.18299999999999994
 
 	//meshfile Model_mesh/thorax.stl
@@ -98,6 +98,9 @@ segment Nipple
 		0.0 0.0747073235655125 0.0
 		0.0 0.0 0.08352192855764505
 
+    mesh 0 0 0
+	mesh 0 0 0.13
+
 	//meshfile Model_mesh/boule.stl
 	//meshscale 3.5100000000000002 1.7399999999999998 0.65
 	//meshrt -0.15 0 0 xyz 0 -0.025 0
@@ -115,9 +118,13 @@ segment Shoulder
 		0.013579288155746834 0.0 0.0
 		0.0 0.03580548060982942 0.0
 		0.0 0.0 0.03963495545790504
-	meshfile Model_mesh/boule.stl
-	meshscale 3.6999999999999997 1.7399999999999998 0.9600000000000009
-	meshrt -0.15 0 0 xyz 0 -0.025 0
+
+	mesh 0 0 0
+	mesh 0 0 0.07200000000000006
+
+	//meshfile Model_mesh/boule.stl
+	//meshscale 3.6999999999999997 1.7399999999999998 0.9600000000000009
+	//meshrt -0.15 0 0 xyz 0 -0.025 0
 
 endsegment
 
@@ -131,11 +138,16 @@ segment Head
 		0.04806459131439946 0.0 0.0
 		0.0 0.04806459131439946 0.0
 		0.0 0.0 0.0195538527057842
-	meshfile Model_mesh/tete.stl
-	meshscale 0.9790179742625778 0.9790179742625778 1.1263537906137182
-	meshrt 0 0 pi xyz 0 0 0
+
+	mesh 0 0 0
+	mesh -0.185 0 -0.07200000000000006
+
+	//meshfile Model_mesh/tete.stl
+	//meshscale 0.9790179742625778 0.9790179742625778 1.1263537906137182
+	//meshrt 0 0 pi xyz 0 0 0
 
 endsegment
+
 
 segment RightUpperArm
 
@@ -154,8 +166,12 @@ segment RightUpperArm
 		0.01619412853617015 0.0 0.0
 		0.0 0.01619412853617015 0.0
 		0.0 0.0 0.003868704875679964
-	meshfile Model_mesh/bras.stl
-	meshscale 0.987745110735268 0.987745110735268 1.0480769230769231
+
+	mesh 0 0 0
+	mesh 0 0 -0.27249999999999996
+
+	//meshfile Model_mesh/bras.stl
+	//meshscale 0.987745110735268 0.987745110735268 1.0480769230769231
 
 endsegment
 
@@ -177,8 +193,13 @@ segment RightForearm
 		0.008328735659979079 0.0 0.0
 		0.0 0.008526048931528918 0.0
 		0.0 0.0 0.001557698090000829
-	meshfile Model_mesh/avantbras.stl
-	meshscale 1.1176213781564206 1.1176213781564206 1.1725806451612903
+
+	mesh 0 0 0
+	mesh 0 0 -0.292
+
+
+	//meshfile Model_mesh/avantbras.stl
+	//meshscale 1.1176213781564206 1.1176213781564206 1.1725806451612903
 
 endsegment
 
@@ -196,9 +217,13 @@ segment RightPalm
 		0.00037895772017589036 0.0 0.0
 		0.0 0.0004598761368571671 0.0
 		0.0 0.0 0.0001738237176077751
-	meshfile Model_mesh/boule.stl
-	meshrt 0 0 0 xyz 0 0 -0.035
-	meshscale 0.8 0.8 1.3
+
+	mesh 0 0 0
+	mesh 0 0 -0.09949999999999995
+
+	//meshfile Model_mesh/boule.stl
+	//meshrt 0 0 0 xyz 0 0 -0.035
+	//meshscale 0.8 0.8 1.3
 
 endsegment
 
@@ -216,9 +241,13 @@ segment RightFingers
 		1.1519311477598938e-05 0.0 0.0
 		0.0 1.8082061752283924e-05 0.0
 		0.0 0.0 1.4289090794924855e-05
-	meshfile Model_mesh/fingers.stl
-	meshscale 0.004 0.002 0.005
-	meshrt pi 0 0 xyz 0.085 0.02 0
+
+	mesh 0 0 0
+	mesh 0 0 -0.046782999938
+
+	//meshfile Model_mesh/fingers.stl
+	//meshscale 0.004 0.002 0.005
+	//meshrt pi 0 0 xyz 0.085 0.02 0
 
 endsegment
 

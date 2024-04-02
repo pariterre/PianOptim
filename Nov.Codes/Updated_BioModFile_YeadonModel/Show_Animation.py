@@ -25,7 +25,7 @@ def get_user_input():
 
 allDOF, pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March//26March-qdot2/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/New_Edition_Version2_2Apr/"
 
 
 if allDOF:
@@ -53,7 +53,7 @@ b = bioviz.Viz(
     show_global_center_of_mass=True,
     show_global_jcs=True,
     show_markers=True,
-    n_frames=20,
+    n_frames=50,
     show_local_ref_frame=False,
 )
 

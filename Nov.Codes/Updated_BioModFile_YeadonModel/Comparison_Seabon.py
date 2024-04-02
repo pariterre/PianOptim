@@ -24,7 +24,7 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/26March-qdot2/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/New_Edition_Version2_2Apr/"
 
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"

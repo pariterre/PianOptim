@@ -26,15 +26,15 @@ pressed = get_user_input()
 dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/26March-qdot2/"
 
 
-saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
 with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/X/"
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
 with open(saveName, "rb") as file:
     data_2 = pickle.load(file)
-
 
 # Process specific points for data_1 and data_2
 specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(data_1["phase_time"]))]
@@ -103,7 +103,7 @@ Name = [
     "MCP, Flexion (-) and Extension (+)",
 ]
 
-for i in range(-12, 0):
+for i in range(-7, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(10, 8))
 
     # Plot for q
