@@ -25,7 +25,7 @@ def get_user_input():
 
 allDOF, pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/New_Edition_Version2_2Apr/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/Power_200/"
 
 
 if allDOF:

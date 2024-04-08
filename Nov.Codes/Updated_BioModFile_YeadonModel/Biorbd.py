@@ -25,7 +25,7 @@ def get_user_input():
 
 allDOF, pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/New_Edition_Version2_2Apr/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/Version2_2Apr/"
 
 if allDOF:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
@@ -100,42 +100,55 @@ num_nodes, num_dofs = z_contributions_by_nodes.shape
 # Calculate the final Z velocity for each node by summing the contributions across all DOFs
 final_z_velocity_per_node = np.sum(z_contributions_by_nodes, axis=1)
 
-#
-# dof_names = [
-#     "Pelvic Anterior and Posterior Tilt",
-#     "Thoracic Flexion/Extension",
-#     "Thoracic Left and Right Rotation",
-#     "Upper Thoracic Flexion/Extension",
-#     "Upper Thoracic Left and Right Rotation",
-#     "Shoulder Flexion/Extension",
-#     "Shoulder Abduction/Adduction",
-#     "Shoulder Internal/External Rotation",
-#     "Elbow Flexion/Extension",
-#     "Forearm Pronation/Supination",
-#     "Wrist Flexion/Extension",
-#     "MCP Flexion/Extension"
-# ]
+# Assign the DOF names based on the all_dof variable
+if allDOF:
+    joint_dof_map = {
+        "Pelvic": [0],
+        "Thoracic": [1, 2],
+        "Upper Thoracic": [3, 4],
+        "Shoulder": [5, 6, 7],
+        "Elbow": [8, 9],
+        "Wrist": [10],
+        "MCP": [11]
+    }
+else:
+    joint_dof_map = {
+        "Shoulder": [0, 1, 2],
+        "Elbow": [3, 4],
+        "Wrist": [5],
+        "MCP": [6]
+    }
 
-# Create a figure and a set of subplots
-fig, axs = plt.subplots(num_nodes, 1, figsize=(10, 15), constrained_layout=True)
 
-# Plot the contributions of each DOF to the Z velocity for each node
+joint_contributions_by_nodes = {}
+
+# Sum the contributions of the DOFs belonging to the same joint for each node
 for node_idx in range(num_nodes):
-    contributions = z_contributions_by_nodes[node_idx, :]
-    bars = axs[node_idx].bar(range(num_dofs), contributions, color=np.where(contributions > 0, 'g', 'r'))
-    axs[node_idx].bar(range(num_dofs), contributions, color=np.where(contributions > 0, 'g', 'r'))
-    axs[node_idx].set_title(f'Node {node_idx + 1} ')
-    axs[node_idx].set_xticks(range(num_dofs))
-    axs[node_idx].set_xticklabels([f'DOF {i+1}' for i in range(num_dofs)])
-    axs[node_idx].axhline(0, color='black', linewidth=0.8)
+    joint_contributions = {}
+    for joint_name, dof_indices in joint_dof_map.items():
+        joint_contribution = sum(z_contributions_by_nodes[node_idx][dof_idx] for dof_idx in dof_indices)
+        joint_contributions[joint_name] = joint_contribution
+    joint_contributions_by_nodes[node_idx] = joint_contributions
 
-    # Calculate and annotate the percentage of each DOF's contribution
-    total_velocity = abs(final_z_velocity_per_node[node_idx])  # Use the absolute value for percentage calculation
-    for bar, contribution in zip(bars, contributions):
-        # percentage = (contribution / total_velocity) * 100 if total_velocity != 0 else 0
-        percentage = (contribution)
-        # axs[node_idx].text(bar.get_x() + bar.get_width() / 2, bar.get_height(),f'{percentage:.{1}f}%', ha='center', va='bottom')
+# Calculate the total contribution of all joints for each node
+total_contributions_by_nodes = [sum(joint_contributions.values()) for joint_contributions in joint_contributions_by_nodes.values()]
 
-axs[4].set_ylabel('Z Velocity Contribution')
+# Create a figure for the time series plot
+fig, ax = plt.subplots(figsize=(10, 6))
 
+# Plot the time series curves of the joint contributions
+for joint_name in joint_dof_map.keys():
+    joint_contributions = [joint_contributions_by_nodes[node_idx][joint_name] for node_idx in range(num_nodes)]
+    ax.plot(range(num_nodes), joint_contributions, label=joint_name)
+
+# Plot the total contributions of all joints for each node
+ax.plot(range(num_nodes), total_contributions_by_nodes, label='Total', linestyle='--', linewidth=2)
+
+ax.set_xlabel('Node')
+ax.set_ylabel('Z Velocity Contribution')
+ax.set_title('Joint Contributions to Z Velocity over Shooting Nodes')
+ax.legend()
+ax.grid(True)
+
+plt.tight_layout()
 plt.show()
