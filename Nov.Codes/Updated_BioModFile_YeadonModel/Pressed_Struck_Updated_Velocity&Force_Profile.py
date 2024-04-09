@@ -1,4 +1,4 @@
-from casadi import MX, acos, dot, pi, fmin, fmax
+from casadi import MX, acos, dot, pi, fmin, fmax, Function
 import time
 import numpy as np
 import biorbd_casadi as biorbd
@@ -47,7 +47,6 @@ from bioptim import (
 # Phase 2: Key Bed - The phase where the keys are fully pressed and meet the bottom.
 # Phase 3: Key Release (Upward) - Releasing the keys and moving the hand upward.
 # Phase 4: Return to Neutral (Downward) - Bringing the fingers back to a neutral position, ready for the next action.
-
 
 def minimize_difference(controllers: list[PenaltyController, PenaltyController]):
     pre, post = controllers
@@ -111,7 +110,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         phase_time = (0.3, 0.024, 0.0605, 0.15, 0.15)
         Force_Profile = [57, 50, 43, 35, 26, 17, 8, 4, 0]
 
-
     else:
         # vel_push_array = [-1.444, -1.343, -1.052, -0.252, -0.196, -0.014,]
         vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
@@ -136,7 +134,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_POWER, key_control="tau", phase=phase, weight=200, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_POWER, key_control="tau", phase=phase, weight=400, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
@@ -184,7 +182,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
             phase=1, node=node,
             marker_index=0, axes=Axis.Z,
-            min_bound=-0.93, max_bound=0.93,
+            min_bound=-0.5, max_bound=0.5,
             target=vel_push_array[node],
         )
 
@@ -223,7 +221,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
                 ConstraintFcn.TRACK_CONTACT_FORCES,
                 phase=2, node=node,
                 contact_index=idx,
-                min_bound=-Force_Profile[node] / 3, max_bound=Force_Profile[node] / 3,
+                # min_bound=-Force_Profile[node] / 3, max_bound=Force_Profile[node] / 3,
+                min_bound=-0.001, max_bound=0.001,
                 quadratic=False,
             )
 
@@ -404,7 +403,7 @@ def process_condition(condition, polynomial_degree, dirName):
     allDOF = condition["allDOF"]
     pressed = condition["pressed"]
 
-    saveName = os.path.join(dirName, f"{'Pressed' if pressed else 'Struck'}_{'with' if allDOF else 'without'}_Thorax.pckl")
+    saveName = os.path.join(dirName, f"{'Pressed' if pressed else 'Struck'}_{'with' if allDOF else 'without'}_Thorax_2.pckl")
 
     # Assume the prepare_ocp function and related setup are defined elsewhere in the script
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
@@ -416,6 +415,29 @@ def process_condition(condition, polynomial_degree, dirName):
 
     sol = ocp.solve(solv)
 
+
+    q_sym = MX.sym("q_sym", 7, 1)
+    qdot_sym = MX.sym("qdot_sym", 7, 1)
+    tau_sym = MX.sym("tau_sym", 7, 1)
+
+    phase = 2
+    Contact_Force = Function(
+        "Contact_Force",
+        [q_sym, qdot_sym, tau_sym],
+        [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+    )
+
+    rows = 9
+    cols = 3
+    F = [[0] * cols for _ in range(rows)]
+
+    for i in range(0, 9):
+        idx = i * (polynomial_degree + 1)
+        F[i] = Contact_Force(
+            sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+        )
+    F_array = np.array(F)
+
     data = dict(
         states=sol.states,
         states_no_intermediate=sol.states_no_intermediate,
@@ -426,6 +448,7 @@ def process_condition(condition, polynomial_degree, dirName):
         param_scaling=[nlp.parameters.scaling for nlp in ocp.nlp],
         phase_time=sol.phase_time,
         Time=sol.time,
+        Contact_Force=F_array
     )
 
     with open(saveName, "wb") as file:
