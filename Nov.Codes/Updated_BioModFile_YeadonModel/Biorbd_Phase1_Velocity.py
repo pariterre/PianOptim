@@ -42,11 +42,13 @@ with open(saveName, "rb") as file:
     new_dict = pickle.load(file)
 
 # Ask the user for the number of Degrees of Freedom (DOFs)
-num_dofs = int(input("Please enter the number of Degrees of Freedom (DOFs) in the system: "))
+num_dofs = model.nbDof()
 
-# Ask the user for the number of shooting nodes
-num_nodes = int(input("Please enter the number of shooting nodes in the system: "))
+if pressed:
+    num_nodes = 8
 
+else:
+    num_nodes = 7
 
 # Extract joint positions (q) and velocities (qdot) from the loaded data
 array_q_s_1 = [new_dict["states_no_intermediate"][i]["q"] for i in range(len(new_dict["states_no_intermediate"]))]

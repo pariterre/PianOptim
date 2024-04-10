@@ -415,6 +415,7 @@ def process_condition(condition, polynomial_degree, dirName):
 
     sol = ocp.solve(solv)
 
+    # Exporting the Contact Forces Profile
 
     q_sym = MX.sym("q_sym", 7, 1)
     qdot_sym = MX.sym("qdot_sym", 7, 1)
