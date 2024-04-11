@@ -91,7 +91,7 @@ for i in range(num_nodes):
     J_contact = np.array(jacobian_array).T
 
     # Define the contact force vector
-    F_contact = np.array([0, 0, 54]).reshape(3, 1)
+    F_contact = np.array([new_dict["Contact_Force"][i][0][0], new_dict["Contact_Force"][i][1][0], new_dict["Contact_Force"][i][2][0]]).reshape(3, 1)
 
     # Compute C^T lambda for the contact force
     C_T_lambda_contact = np.dot(J_contact, F_contact)

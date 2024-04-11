@@ -104,15 +104,15 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     if pressed:
         # Profiles found thanks to the motion capture datas.
-        # vel_push_array = [0.0, -0.756, -1.120, -1.210, -0.873, -0.450, -0.058,]
-        vel_push_array = [0.0, -0.114, -0.181, -0.270, -0.347, -0.291, -0.100, ]
+        vel_push_array = [0.0, -0.756, -1.120, -1.210, -0.873, -0.450, -0.058,]
+        # vel_push_array = [0.0, -0.114, -0.181, -0.270, -0.347, -0.291, -0.100, ]
         n_shooting = (30, 7, 9, 10, 10)
         phase_time = (0.3, 0.024, 0.0605, 0.15, 0.15)
         Force_Profile = [57, 50, 43, 35, 26, 17, 8, 4, 0]
 
     else:
-        # vel_push_array = [-1.444, -1.343, -1.052, -0.252, -0.196, -0.014,]
-        vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
+        vel_push_array = [-1.244, -1.143, -1.052, -0.252, -0.196, -0.014,]
+        # vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
         n_shooting = (30, 6, 9, 10, 10)
         phase_time = (0.3, 0.020, 0.0501, 0.15, 0.15)
         Force_Profile = [54, 47, 41, 35, 28, 18, 10, 4, 0]
@@ -174,7 +174,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
         phase=1, node=Node.START,
         marker_index=0, axes=Axis.Z,
-        min_bound = -0.2, max_bound = 0.2,
+        # min_bound=-0.01, max_bound=0.01,
         target=vel_push_array[0]
     )
 
@@ -183,7 +183,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
             phase=1, node=node,
             marker_index=0, axes=Axis.Z,
-            min_bound=-0.2, max_bound=0.2,
+            # min_bound=-0.01, max_bound=0.01,
             target=vel_push_array[node],
         )
 
