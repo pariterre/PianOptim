@@ -68,7 +68,7 @@ for i in range(num_nodes):
 
     # Compute the generalized accelerations using forward dynamics
     Qddot = model.ForwardDynamicsConstraintsDirect(Q, Qdot, Tau).to_array()
-    Qddot_m = Qddot.reshape(7, 1)
+    Qddot_m = Qddot.reshape(num_dofs, 1)
 
     # Compute the mass matrix
     Mass = model.massMatrix(Q).to_array()
@@ -77,7 +77,7 @@ for i in range(num_nodes):
     Mass_Qddot = np.dot(Mass, Qddot_m)
 
     # Compute the nonlinear effects
-    nonlinear_effects = model.NonLinearEffect(Q, Qdot).to_array().reshape(7, 1)
+    nonlinear_effects = model.NonLinearEffect(Q, Qdot).to_array().reshape(num_dofs, 1)
 
     # Compute the Jacobian for the contact point on the "RightFingers" segment
     parent_name = "RightFingers"
