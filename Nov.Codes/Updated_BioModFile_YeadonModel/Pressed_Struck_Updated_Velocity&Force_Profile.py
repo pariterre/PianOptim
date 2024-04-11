@@ -111,7 +111,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         Force_Profile = [57, 50, 43, 35, 26, 17, 8, 4, 0]
 
     else:
-        vel_push_array = [-1.244, -1.143, -1.052, -0.252, -0.196, -0.014,]
+        vel_push_array = [-1.244, -1.143, -0.652, -0.252, -0.196, -0.014,]
         # vel_push_array = [-0.698, -0.475, -0.368, -0.357, -0.368, -0.278, ]
         n_shooting = (30, 6, 9, 10, 10)
         phase_time = (0.3, 0.020, 0.0501, 0.15, 0.15)
@@ -142,7 +142,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # #
     for phase in [0, 1]:
         objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=wrist
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.02, index=wrist
         )
 
     # Constraints
