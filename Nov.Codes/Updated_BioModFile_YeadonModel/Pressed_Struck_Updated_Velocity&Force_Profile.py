@@ -131,19 +131,19 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     for phase in all_phases:
 
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1, index=all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.01, index=all_dof_except_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_POWER, key_control="tau", phase=phase, weight=400, index=dof_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_POWER, key_control="tau", phase=phase, weight=100, index=dof_wrist_finger
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
         )
     # #
-    # for phase in [0, 1]:
-    #     objective_functions.add(
-    #             ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", phase=phase, weight=10, index=wrist
-    #     )
+    for phase in [0, 1]:
+        objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=wrist
+        )
 
     # Constraints
     constraints = ConstraintList()
@@ -173,7 +173,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     constraints.add(
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
         phase=1, node=Node.START,
-        marker_index=0,
+        marker_index=0, axes=Axis.Z,
+        min_bound = -0.2, max_bound = 0.2,
         target=vel_push_array[0]
     )
 
@@ -182,7 +183,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ConstraintFcn.TRACK_MARKERS_VELOCITY,
             phase=1, node=node,
             marker_index=0, axes=Axis.Z,
-            min_bound=-0.5, max_bound=0.5,
+            min_bound=-0.2, max_bound=0.2,
             target=vel_push_array[node],
         )
 
@@ -221,8 +222,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
                 ConstraintFcn.TRACK_CONTACT_FORCES,
                 phase=2, node=node,
                 contact_index=idx,
-                # min_bound=-Force_Profile[node] / 3, max_bound=Force_Profile[node] / 3,
-                min_bound=-0.001, max_bound=0.001,
+                min_bound=-Force_Profile[node] / 3, max_bound=Force_Profile[node] / 3,
+                # min_bound=-0.1, max_bound=0.1,
                 quadratic=False,
             )
 
@@ -403,7 +404,7 @@ def process_condition(condition, polynomial_degree, dirName):
     allDOF = condition["allDOF"]
     pressed = condition["pressed"]
 
-    saveName = os.path.join(dirName, f"{'Pressed' if pressed else 'Struck'}_{'with' if allDOF else 'without'}_Thorax_2.pckl")
+    saveName = os.path.join(dirName, f"{'Pressed' if pressed else 'Struck'}_{'with' if allDOF else 'without'}_Thorax.pckl")
 
     # Assume the prepare_ocp function and related setup are defined elsewhere in the script
     ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
@@ -417,27 +418,59 @@ def process_condition(condition, polynomial_degree, dirName):
 
     # Exporting the Contact Forces Profile
 
-    q_sym = MX.sym("q_sym", 7, 1)
-    qdot_sym = MX.sym("qdot_sym", 7, 1)
-    tau_sym = MX.sym("tau_sym", 7, 1)
+    if allDOF:
 
-    phase = 2
-    Contact_Force = Function(
-        "Contact_Force",
-        [q_sym, qdot_sym, tau_sym],
-        [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
-    )
+        n = 12    # Number of degrees of freedom (DOFs)
 
-    rows = 9
-    cols = 3
-    F = [[0] * cols for _ in range(rows)]
+        q_sym = MX.sym("q_sym", n, 1)
+        qdot_sym = MX.sym("qdot_sym", n, 1)
+        tau_sym = MX.sym("tau_sym", n, 1)
 
-    for i in range(0, 9):
-        idx = i * (polynomial_degree + 1)
-        F[i] = Contact_Force(
-            sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+        phase = 2
+        Contact_Force = Function(
+            "Contact_Force",
+            [q_sym, qdot_sym, tau_sym],
+            [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
         )
-    F_array = np.array(F)
+
+        rows = 9 # Number of shooting nodes
+        cols = 3 # Number of contact forces (x, y, z)
+
+        F = [[0] * cols for _ in range(rows)]
+
+        for i in range(0, 9):
+            idx = i * (polynomial_degree + 1)
+            F[i] = Contact_Force(
+                sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+            )
+        F_array = np.array(F)
+
+    else:
+
+        n = 7  # Number of degrees of freedom (DOFs)
+
+        q_sym = MX.sym("q_sym", n, 1)
+        qdot_sym = MX.sym("qdot_sym", n, 1)
+        tau_sym = MX.sym("tau_sym", n, 1)
+
+        phase = 2
+        Contact_Force = Function(
+            "Contact_Force",
+            [q_sym, qdot_sym, tau_sym],
+            [ocp.nlp[phase].model.contact_forces_from_constrained_forward_dynamics(q_sym, qdot_sym, tau_sym)],
+        )
+
+        rows = 9  # Number of shooting nodes
+        cols = 3  # Number of contact forces (x, y, z)
+
+        F = [[0] * cols for _ in range(rows)]
+
+        for i in range(0, 9):
+            idx = i * (polynomial_degree + 1)
+            F[i] = Contact_Force(
+                sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
+            )
+        F_array = np.array(F)
 
     data = dict(
         states=sol.states,

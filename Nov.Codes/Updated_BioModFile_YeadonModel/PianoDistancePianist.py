@@ -71,31 +71,79 @@ desired_indices = [marker_names.index(marker) for marker in desired_markers]
 selected_markers = markers[:3, desired_indices, :]
 num_frames = selected_markers.shape[2]
 num_markers = selected_markers.shape[1]
+#
+# # Create a 3D plot
+# fig = plt.figure()
+# ax = fig.add_subplot(111, projection='3d')
+#
+# # Initialize the plot with empty lines
+# lines = [ax.plot([], [], [], 'o')[0] for _ in range(num_markers)]
+#
+# # Set plot limits and labels
+# ax.set_xlim(np.min(selected_markers[0, :, :]), np.max(selected_markers[0, :, :]))
+# ax.set_ylim(np.min(selected_markers[1, :, :]), np.max(selected_markers[1, :, :]))
+# ax.set_zlim(np.min(selected_markers[2, :, :]), np.max(selected_markers[2, :, :]))
+# ax.set_xlabel('X')
+# ax.set_ylabel('Y')
+# ax.set_zlabel('Z')
+#
+# # Update function for animation
+# def update(frame):
+#     for i, line in enumerate(lines):
+#         line.set_data(selected_markers[0, i, frame], selected_markers[1, i, frame])
+#         line.set_3d_properties(selected_markers[2, i, frame])
+#     return lines
+#
+# # Create the animation
+# ani = FuncAnimation(fig, update, frames=range(num_frames), interval=50, blit=True)
+#
+# # Display the animation
+# plt.show()
+#
 
-# Create a 3D plot
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+# Extract marker data
+markers = c3d['data']['points']  # Shape: (4, n_markers, n_frames)
+n_frames = markers.shape[2]
 
-# Initialize the plot with empty lines
-lines = [ax.plot([], [], [], 'o')[0] for _ in range(num_markers)]
+# Get the parameter information
+parameters = c3d['parameters']
 
-# Set plot limits and labels
-ax.set_xlim(np.min(selected_markers[0, :, :]), np.max(selected_markers[0, :, :]))
-ax.set_ylim(np.min(selected_markers[1, :, :]), np.max(selected_markers[1, :, :]))
-ax.set_zlim(np.min(selected_markers[2, :, :]), np.max(selected_markers[2, :, :]))
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
+# Get the marker names from the parameters
+marker_names = parameters['POINT']['LABELS']['value']
 
-# Update function for animation
-def update(frame):
-    for i, line in enumerate(lines):
-        line.set_data(selected_markers[0, i, frame], selected_markers[1, i, frame])
-        line.set_3d_properties(selected_markers[2, i, frame])
-    return lines
+# Select the desired markers
+desired_markers = ["Piano:Piano_AigDown", "Piano:Piano_GraDown", "004:PSISr", "004:PSISl"]
+marker_indices = [marker_names.index(marker) for marker in desired_markers]
 
-# Create the animation
-ani = FuncAnimation(fig, update, frames=range(num_frames), interval=50, blit=True)
+# Extract the data for the desired markers
+marker_data = markers[:3, marker_indices, :]
 
-# Display the animation
+# Create subplots for each marker
+fig, axs = plt.subplots(len(desired_markers), 3, figsize=(12, 16))
+
+# Plot coordinates for each marker
+for i, marker in enumerate(desired_markers):
+    # Plot X coordinates
+    axs[i, 0].plot(range(n_frames), marker_data[0, i, :], label=marker)
+    axs[i, 0].set_xlabel('Frame')
+    axs[i, 0].set_ylabel('X')
+    axs[i, 0].legend()
+
+    # Plot Y coordinates
+    axs[i, 1].plot(range(n_frames), marker_data[1, i, :], label=marker)
+    axs[i, 1].set_xlabel('Frame')
+    axs[i, 1].set_ylabel('Y')
+    axs[i, 1].legend()
+
+    # Plot Z coordinates
+    axs[i, 2].plot(range(n_frames), marker_data[2, i, :], label=marker)
+    axs[i, 2].set_xlabel('Frame')
+    axs[i, 2].set_ylabel('Z')
+    axs[i, 2].legend()
+
+# Adjust spacing between subplots
+plt.tight_layout()
+
+# Display the plot
 plt.show()
+
