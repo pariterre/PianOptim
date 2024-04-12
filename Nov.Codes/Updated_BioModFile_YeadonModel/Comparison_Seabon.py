@@ -24,10 +24,10 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/X/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/X_1/"
 
 
-saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax_old.pckl"
+saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
 with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
@@ -41,7 +41,7 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = ("Pressed_" if pressed else "Struck_")+ "Without_old"
+label_1 = ("Pressed_" if pressed else "Struck_")+ "With"
 label_2 = ("Pressed_" if pressed else "Struck_")+ "Without"
 
 # Processing data_1 and data_2 for q, qdot, tau
@@ -99,7 +99,7 @@ Name = [
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-for i in range(-7, 0):
+for i in range(-12, 0):
     fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(10, 8))
 
     # Plot for q
