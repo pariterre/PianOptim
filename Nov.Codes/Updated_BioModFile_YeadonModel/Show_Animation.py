@@ -25,7 +25,7 @@ def get_user_input():
 
 allDOF, pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/X_3/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/X_4/"
 
 if allDOF:
     saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
