@@ -192,56 +192,60 @@ ax2.grid(True)
 plt.tight_layout()
 plt.show()
 
+# Get user input for the number of digits after zero for rounding
+num_digits = 2
 
-# Create a new figure with subplots for the table and final velocity plot
-fig_table, (ax_table, ax_velocity) = plt.subplots(1, 2, figsize=(16, 6))
+# Create a figure with subplots for the graph and tables
+fig = plt.figure(figsize=(16, 12))
+ax_graph = fig.add_subplot(3, 1, 1)
+ax_table_DT = fig.add_subplot(3, 1, 2)
+ax_table_ST = fig.add_subplot(3, 1, 3)
 
-# Create a table to display the joint contributions for each node
+# Plot the final velocity for each node
+ax_graph.plot(range(num_nodes), final_z_velocity_per_node_DT, label='Final Velocity (DT)')
+ax_graph.plot(range(num_nodes), final_z_velocity_per_node_ST, label='Final Velocity (ST)')
+ax_graph.set_xlabel('Node')
+ax_graph.set_ylabel('Final Z Velocity')
+ax_graph.set_title('Final Z Velocity per Node')
+ax_graph.legend()
+ax_graph.grid(True)
+
+# Create a table to display the joint contributions for each node in the first file (DT)
 table_data_DT = []
-table_data_ST = []
-
-# Prepare the table data for the first file (DT)
 for node_idx in range(num_nodes):
     row_data_DT = [node_idx]
     for joint_name in joint_dof_map_DT.keys():
-        row_data_DT.append(joint_contributions_by_nodes_DT[node_idx][joint_name])
-    row_data_DT.append(total_contributions_by_nodes_DT[node_idx])
+        row_data_DT.append(round(joint_contributions_by_nodes_DT[node_idx][joint_name], num_digits))
+    row_data_DT.append(round(total_contributions_by_nodes_DT[node_idx], num_digits))
     table_data_DT.append(row_data_DT)
 
-# Prepare the table data for the second file (ST)
-for node_idx in range(num_nodes):
-    row_data_ST = [node_idx]
-    for joint_name in joint_dof_map_ST.keys():
-        row_data_ST.append(joint_contributions_by_nodes_ST[node_idx][joint_name])
-    row_data_ST.append(total_contributions_by_nodes_ST[node_idx])
-    table_data_ST.append(row_data_ST)
-
-# Create the table for the first file (DT)
 columns_DT = ['Node'] + list(joint_dof_map_DT.keys()) + ['Total']
-ax_table.axis('tight')
-ax_table.axis('off')
-table_DT = ax_table.table(cellText=table_data_DT, colLabels=columns_DT, loc='center', cellLoc='center')
+ax_table_DT.axis('tight')
+ax_table_DT.axis('off')
+table_DT = ax_table_DT.table(cellText=table_data_DT, colLabels=columns_DT, loc='center', cellLoc='center')
 table_DT.auto_set_font_size(False)
 table_DT.set_fontsize(10)
 table_DT.scale(1.2, 1.2)
+ax_table_DT.set_title("Table 1: Joint Contributions (DT)")
 
-# Create the table for the second file (ST)
+# Create a table to display the joint contributions for each node in the second file (ST)
+table_data_ST = []
+for node_idx in range(num_nodes):
+    row_data_ST = [node_idx]
+    for joint_name in joint_dof_map_ST.keys():
+        row_data_ST.append(round(joint_contributions_by_nodes_ST[node_idx][joint_name], num_digits))
+    row_data_ST.append(round(total_contributions_by_nodes_ST[node_idx], num_digits))
+    table_data_ST.append(row_data_ST)
+
 columns_ST = ['Node'] + list(joint_dof_map_ST.keys()) + ['Total']
-ax_table.axis('tight')
-ax_table.axis('off')
-table_ST = ax_table.table(cellText=table_data_ST, colLabels=columns_ST, loc='center', cellLoc='center')
+ax_table_ST.axis('tight')
+ax_table_ST.axis('off')
+table_ST = ax_table_ST.table(cellText=table_data_ST, colLabels=columns_ST, loc='center', cellLoc='center')
 table_ST.auto_set_font_size(False)
 table_ST.set_fontsize(10)
 table_ST.scale(1.2, 1.2)
-
-# Plot the final velocity for each node
-ax_velocity.plot(range(num_nodes), final_z_velocity_per_node_DT, label='Final Velocity (DT)')
-ax_velocity.plot(range(num_nodes), final_z_velocity_per_node_ST, label='Final Velocity (ST)')
-ax_velocity.set_xlabel('Node')
-ax_velocity.set_ylabel('Final Z Velocity')
-ax_velocity.set_title('Final Z Velocity per Node')
-ax_velocity.legend()
-ax_velocity.grid(True)
+ax_table_ST.set_title("Table 2: Joint Contributions (ST)")
+ax_table_ST.axis('tight')
 
 plt.tight_layout()
 plt.show()
