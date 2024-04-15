@@ -276,6 +276,7 @@ marker MCP_marker
     position 0 0 0
 endmarker
 
+
 /// Piano Configuration ///
 // The following segments and markers define the piano interaction model, simulating key presses and piano playing.
 // Key 1 Configuration
@@ -283,12 +284,12 @@ segment square
     parent ground
     // These mesh coordinates define the first key's position and dimensions
 
-    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.121
-    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.121-0.01
-    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.121-0.01
-    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.121-0.01
-    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.121-0.01
-    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.121
+    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.13
+    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.13-0.01
+    mesh -0.17254042053222657    -0.5356114196777344+0.025  0.13-0.01
+    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.13-0.01
+    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.13-0.01
+    mesh -0.14954042053222655    -0.5356114196777344+0.025  0.13
 
 endsegment
 
@@ -296,12 +297,12 @@ endsegment
 segment square2
     parent ground
     // Similar to Key 1, these mesh coordinates define the position and dimensions of the second key
-    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.121
-    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.121-0.01
-    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.121-0.01
-    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.121-0.01
-    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.121-0.01
-    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.121
+    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.13
+    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.13-0.01
+    mesh -0.31754042053222653 -0.5356114196777344+0.025 0.13-0.01
+    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.13-0.01
+    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.13-0.01
+    mesh -0.34054042053222655 -0.5356114196777344+0.025 0.13
 endsegment
 
 // Marker Configuration for Simulating Piano Key Presses //
@@ -309,7 +310,7 @@ endsegment
 // Marker for the top surface of Key 1
 marker Key1_Top
     parent ground
-    position -0.16104042053222656 -0.5356114196777344+0.025 0.121
+    position -0.16104042053222656 -0.5356114196777344+0.025 0.13
 endmarker
 
 // Marker for simulating the upward motion of a key (12 cm above)
@@ -322,21 +323,21 @@ endmarker
 // Marker for the lower surface of Key 1
 marker key1_base
     parent ground
-    position -0.16104042053222656 -0.5356114196777344+0.025 0.121-0.01
+    position -0.16104042053222656 -0.5356114196777344+0.025 0.13-0.01
     // Represents the lower surface of the first key, indicating a pressed state
 endmarker
 
 // Marker for the top surface of Key 2
 marker Key2_Top
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.121
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.13
     // This marker is for the upper surface of the second piano key
 endmarker
 
 // Marker for the lower surface of Key 2
 marker Key2_base
     parent ground
-    position -0.3290404205322266 -0.5356114196777344+0.025 0.121-0.01
+    position -0.3290404205322266 -0.5356114196777344+0.025 0.13-0.01
     // Indicates the pressed state (Key descend, not pressed or struck touch) of the second key
 endmarker
 

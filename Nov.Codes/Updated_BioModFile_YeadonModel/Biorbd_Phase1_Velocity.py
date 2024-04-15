@@ -191,3 +191,57 @@ ax2.grid(True)
 
 plt.tight_layout()
 plt.show()
+
+
+# Create a new figure with subplots for the table and final velocity plot
+fig_table, (ax_table, ax_velocity) = plt.subplots(1, 2, figsize=(16, 6))
+
+# Create a table to display the joint contributions for each node
+table_data_DT = []
+table_data_ST = []
+
+# Prepare the table data for the first file (DT)
+for node_idx in range(num_nodes):
+    row_data_DT = [node_idx]
+    for joint_name in joint_dof_map_DT.keys():
+        row_data_DT.append(joint_contributions_by_nodes_DT[node_idx][joint_name])
+    row_data_DT.append(total_contributions_by_nodes_DT[node_idx])
+    table_data_DT.append(row_data_DT)
+
+# Prepare the table data for the second file (ST)
+for node_idx in range(num_nodes):
+    row_data_ST = [node_idx]
+    for joint_name in joint_dof_map_ST.keys():
+        row_data_ST.append(joint_contributions_by_nodes_ST[node_idx][joint_name])
+    row_data_ST.append(total_contributions_by_nodes_ST[node_idx])
+    table_data_ST.append(row_data_ST)
+
+# Create the table for the first file (DT)
+columns_DT = ['Node'] + list(joint_dof_map_DT.keys()) + ['Total']
+ax_table.axis('tight')
+ax_table.axis('off')
+table_DT = ax_table.table(cellText=table_data_DT, colLabels=columns_DT, loc='center', cellLoc='center')
+table_DT.auto_set_font_size(False)
+table_DT.set_fontsize(10)
+table_DT.scale(1.2, 1.2)
+
+# Create the table for the second file (ST)
+columns_ST = ['Node'] + list(joint_dof_map_ST.keys()) + ['Total']
+ax_table.axis('tight')
+ax_table.axis('off')
+table_ST = ax_table.table(cellText=table_data_ST, colLabels=columns_ST, loc='center', cellLoc='center')
+table_ST.auto_set_font_size(False)
+table_ST.set_fontsize(10)
+table_ST.scale(1.2, 1.2)
+
+# Plot the final velocity for each node
+ax_velocity.plot(range(num_nodes), final_z_velocity_per_node_DT, label='Final Velocity (DT)')
+ax_velocity.plot(range(num_nodes), final_z_velocity_per_node_ST, label='Final Velocity (ST)')
+ax_velocity.set_xlabel('Node')
+ax_velocity.set_ylabel('Final Z Velocity')
+ax_velocity.set_title('Final Z Velocity per Node')
+ax_velocity.legend()
+ax_velocity.grid(True)
+
+plt.tight_layout()
+plt.show()
