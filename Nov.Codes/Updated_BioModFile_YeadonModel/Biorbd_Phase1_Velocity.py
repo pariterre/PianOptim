@@ -2,6 +2,8 @@ import biorbd
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 
 def get_user_input():
     while True:
@@ -16,7 +18,7 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/X_4/"
+dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124/"
 
 saveName_DT = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
 saveName_ST = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
@@ -162,30 +164,37 @@ total_contributions_by_nodes_DT = [sum(joint_contributions.values()) for joint_c
 # Calculate the total contribution of all joints for each node in the second file (ST)
 total_contributions_by_nodes_ST = [sum(joint_contributions.values()) for joint_contributions in joint_contributions_by_nodes_ST.values()]
 
-# Create a figure with two subplots for the time series plots
+num_joints = len(joint_dof_map_DT)
+colors = cm.rainbow(np.linspace(0, 1, num_joints))
+joint_color_map = dict(zip(joint_dof_map_DT.keys(), colors))
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
-# Plot the time series curves of the joint contributions for the first file (DT)
-for joint_name in joint_dof_map_DT.keys():
+for joint_name, color in joint_color_map.items():
     joint_contributions_DT = [joint_contributions_by_nodes_DT[node_idx][joint_name] for node_idx in range(num_nodes)]
-    ax1.plot(range(num_nodes), joint_contributions_DT, label=joint_name)
+    ax1.plot(range(num_nodes), joint_contributions_DT, label=joint_name, color=color)
 
-ax1.plot(range(num_nodes), total_contributions_by_nodes_DT, label='Total', linestyle='--', linewidth=2)
+    if joint_name in joint_dof_map_ST:
+        joint_contributions_ST = [joint_contributions_by_nodes_ST[node_idx][joint_name] for node_idx in range(num_nodes)]
+        ax2.plot(range(num_nodes), joint_contributions_ST, label=joint_name, color=color)
+
+ax1.plot(range(num_nodes), total_contributions_by_nodes_DT, label='Total', linestyle='--', linewidth=2, color='black')
+ax2.plot(range(num_nodes), total_contributions_by_nodes_ST, label='Total', linestyle='--', linewidth=2, color='black')
+
+y_min = min(ax1.get_ylim()[0], ax2.get_ylim()[0])
+y_max = max(ax1.get_ylim()[1], ax2.get_ylim()[1])
+ax1.set_ylim(y_min, y_max)
+ax2.set_ylim(y_min, y_max)
+
 ax1.set_xlabel('Node')
 ax1.set_ylabel('Z Velocity Contribution')
-ax1.set_title("Pressed_" if pressed else "Struck_" 'Joint Contributions (DT)')
+ax1.set_title("Pressed_Joint Contributions (DT)" if pressed else "Struck_Joint Contributions (DT)")
 ax1.legend()
 ax1.grid(True)
 
-# Plot the time series curves of the joint contributions for the second file (ST)
-for joint_name in joint_dof_map_ST.keys():
-    joint_contributions_ST = [joint_contributions_by_nodes_ST[node_idx][joint_name] for node_idx in range(num_nodes)]
-    ax2.plot(range(num_nodes), joint_contributions_ST, label=joint_name)
-
-ax2.plot(range(num_nodes), total_contributions_by_nodes_ST, label='Total', linestyle='--', linewidth=2)
 ax2.set_xlabel('Node')
 ax2.set_ylabel('Z Velocity Contribution')
-ax2.set_title("Pressed_" if pressed else "Struck_" 'Joint Contributions (ST)')
+ax2.set_title("Pressed_Joint Contributions (ST)" if pressed else "Struck_Joint Contributions (ST)")
 ax2.legend()
 ax2.grid(True)
 

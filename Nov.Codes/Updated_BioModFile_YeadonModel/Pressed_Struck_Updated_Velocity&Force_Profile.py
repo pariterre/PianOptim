@@ -137,7 +137,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=200, index=dof_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_except_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.001, index=dof_wrist_finger, quadratic=True #all_dof_except_wrist_finger
         )
     # #
     for phase in [0, 1]:
@@ -194,27 +194,27 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         second_marker="key1_base",
     )
 
-    # if pressed==False:
-    #
-    #     if allDOF==False:
-    #
-    #         # finger_marker
-    #         x_base = -0.16104042053222656
-    #         y_base = -0.5356114196777344 + 0.025
-    #
-    #         # Calculating min_bound and max_bound with adjustments
-    #         min_bound = np.array([x_base - 0.05, y_base - 0.05])
-    #         max_bound = np.array([x_base + 0.05, y_base + 0.05])
-    #
-    #         constraints.add(
-    #             ConstraintFcn.TRACK_MARKERS,
-    #             phase=0,
-    #             node=Node.INTERMEDIATES,
-    #             marker_index=0,
-    #             axes=[Axis.X, Axis.Y],
-    #             min_bound=np.array([-0.22, -0.56]),
-    #             max_bound=np.array([-0.11, -0.46]),
-    #         )
+    if pressed==False:
+
+        if allDOF==False:
+
+            # finger_marker
+            x_base = -0.16104042053222656
+            y_base = -0.5356114196777344 + 0.025
+
+            # Calculating min_bound and max_bound with adjustments
+            min_bound = np.array([x_base - 0.05, y_base - 0.05])
+            max_bound = np.array([x_base + 0.05, y_base + 0.05])
+
+            constraints.add(
+                ConstraintFcn.TRACK_MARKERS,
+                phase=0,
+                node=Node.ALL_SHOOTING,
+                marker_index=0,
+                axes=[Axis.X, Axis.Y],
+                min_bound=np.array([-0.20, -0.55]),
+                max_bound=np.array([-0.10, -0.45]),
+            )
 
     for node in range(n_shooting[2]):
         for idx in [0, 1]:
