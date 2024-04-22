@@ -23,7 +23,7 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Felipe_25March/26March-qdot/"
+dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124/"
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
 with open(saveName, "rb") as file:
@@ -127,13 +127,21 @@ phases = np.arange(len(I1_absolute_Values))  # Assuming each row is a different 
 # Creating subplots
 fig, axe = plt.subplots(1, 1, figsize=(10, 8))
 
+for i, (v1, v2) in enumerate(zip(I1_absolute_Values, I2_absolute_Values)):
+    if i==1 or i==2:
+        axe.annotate(f'{percentage_diff_absolute_Value[i]:.2f}%',
+                     xy=(phases[i] + 0.2, v2),
+                     xytext=(1, 2),
+                     textcoords='offset points',
+                     ha='center', va='bottom')
+
 # Bar graph for values 1 and 2 per each phase
 axe.bar(phases - 0.2, I1_absolute_Values, 0.4, label='DT Strategy')
 axe.bar(phases + 0.2, I2_absolute_Values, 0.4, label='ST Strategy')
 axe.set_title('Analysis of Tau Reduction Across Different Phases_'+ ("Pressed" if pressed else "Struck"))
 axe.set_xlabel('Phases')
 plt.xticks(phases, phase)
-axe.set_ylabel('Area Under Curve (AUC) of tau for the distal joints (N.m)')
+axe.set_ylabel('Area Under Curve (AUC) of tau (absolute values) for the distal joints (N.m)')
 axe.legend()
 axe.grid(True)
 

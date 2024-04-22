@@ -120,10 +120,10 @@ for i in range(-12, 0):
     axs[1].legend()
 
     # Plot for tau
-    sns.lineplot(x=concatenated_array_time_s_1, y=concatenated_array_tau_s_1[i, :], color="red", label=label_1, ax=axs[2])
+    sns.lineplot(x=concatenated_array_time_s_1, y=concatenated_array_tau_s_1[i, :], color="red", drawstyle='steps-pre', label=label_1, ax=axs[2])
     if i >= -7:  # Check if data2 has this index
-        sns.lineplot(x=concatenated_array_time_s_2, y=concatenated_array_tau_s_2[i, :], color="blue", linestyle="--", label=label_2, ax=axs[2])
-    axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.4, color='gray', alpha=0.2)
+        sns.lineplot(x=concatenated_array_time_s_2, y=concatenated_array_tau_s_2[i, :], color="blue", drawstyle='steps-pre', linestyle="--", label=label_2, ax=axs[2])
+    axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.3701, color='gray', alpha=0.2)
     axs[2].set_ylabel(r"$\tau$ (N/m)")
     axs[2].set_xlabel("Time (sec)")
     axs[2].legend()

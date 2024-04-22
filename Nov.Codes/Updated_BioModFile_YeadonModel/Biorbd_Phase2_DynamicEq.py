@@ -336,3 +336,87 @@ for i, ax in enumerate(axs_mcp.flatten()):
     table.scale(1.5, 1.2)
 
 plt.show()
+
+num_nodes = 9
+nodes = list(range(num_nodes))
+
+# Create a figure with 8 subplots (2 rows, 4 columns)
+fig, axs = plt.subplots(2, 4, figsize=(20, 10))
+
+# Plotting C_T_lambda values for Wrist
+axs[0, 0].plot(nodes, Wrist_C_T_lambda_DT, label='Wrist (DT)', marker='o')
+axs[0, 0].plot(nodes, Wrist_C_T_lambda_ST, label='Wrist (ST)', marker='^')
+axs[0, 0].set_title('Wrist -C_T_lambda Contributions')
+axs[0, 0].set_xlabel('Node')
+axs[0, 0].set_ylabel('C_T_lambda Value')
+axs[0, 0].legend()
+axs[0, 0].grid(True)
+
+# Plotting C_T_lambda values for MCP
+axs[1, 0].plot(nodes, MCP_C_T_lambda_DT, label='MCP (DT)', marker='s')
+axs[1, 0].plot(nodes, MCP_C_T_lambda_ST, label='MCP (ST)', marker='x')
+axs[1, 0].set_title('MCP -C_T_lambda Contributions')
+axs[1, 0].set_xlabel('Node')
+axs[1, 0].set_ylabel('C_T_lambda Value')
+axs[1, 0].legend()
+axs[1, 0].grid(True)
+
+# Plotting Nonlinear_Effects values for Wrist
+axs[0, 1].plot(nodes, Wrist_Nonlinear_Effects_DT, label='Wrist (DT)', marker='o')
+axs[0, 1].plot(nodes, Wrist_Nonlinear_Effects_ST, label='Wrist (ST)', marker='^')
+axs[0, 1].set_title('Wrist Nonlinear Effects Contributions')
+axs[0, 1].set_xlabel('Node')
+axs[0, 1].set_ylabel('Nonlinear Effects Value')
+axs[0, 1].legend()
+axs[0, 1].grid(True)
+
+# Plotting Nonlinear_Effects values for MCP
+axs[1, 1].plot(nodes, MCP_Nonlinear_Effects_DT, label='MCP (DT)', marker='s')
+axs[1, 1].plot(nodes, MCP_Nonlinear_Effects_ST, label='MCP (ST)', marker='x')
+axs[1, 1].set_title('MCP Nonlinear Effects Contributions')
+axs[1, 1].set_xlabel('Node')
+axs[1, 1].set_ylabel('Nonlinear Effects Value')
+axs[1, 1].legend()
+axs[1, 1].grid(True)
+
+# Plotting Mass_Qddot values for Wrist
+axs[0, 2].plot(nodes, Wrist_Mass_Qddot_DT, label='Wrist (DT)', marker='o')
+axs[0, 2].plot(nodes, Wrist_Mass_Qddot_ST, label='Wrist (ST)', marker='^')
+axs[0, 2].set_title('Wrist Mass_Qddot Contributions')
+axs[0, 2].set_xlabel('Node')
+axs[0, 2].set_ylabel('Mass_Qddot Value')
+axs[0, 2].legend()
+axs[0, 2].grid(True)
+
+# Plotting Mass_Qddot values for MCP
+axs[1, 2].plot(nodes, MCP_Mass_Qddot_DT, label='MCP (DT)', marker='s')
+axs[1, 2].plot(nodes, MCP_Mass_Qddot_ST, label='MCP (ST)', marker='x')
+axs[1, 2].set_title('MCP Mass_Qddot Contributions')
+axs[1, 2].set_xlabel('Node')
+axs[1, 2].set_ylabel('Mass_Qddot Value')
+axs[1, 2].legend()
+axs[1, 2].grid(True)
+
+# Plotting Tau_values for Wrist
+axs[0, 3].plot(nodes, Wrist_Tau_DT, label='Wrist (DT)', marker='o')
+axs[0, 3].plot(nodes, Wrist_Tau_ST, label='Wrist (ST)', marker='^')
+axs[0, 3].set_title('Wrist Tau Values Contributions')
+axs[0, 3].set_xlabel('Node')
+axs[0, 3].set_ylabel('Tau Value')
+axs[0, 3].legend()
+axs[0, 3].grid(True)
+
+# Plotting Tau_values for MCP
+axs[1, 3].plot(nodes, MCP_Tau_DT, label='MCP (DT)', marker='s')
+axs[1, 3].plot(nodes, MCP_Tau_ST, label='MCP (ST)', marker='x')
+axs[1, 3].set_title('MCP Tau Values Contributions')
+axs[1, 3].set_xlabel('Node')
+axs[1, 3].set_ylabel('Tau Value')
+axs[1, 3].legend()
+axs[1, 3].grid(True)
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Display the plot
+plt.show()
