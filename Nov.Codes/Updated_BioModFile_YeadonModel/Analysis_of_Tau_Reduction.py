@@ -124,28 +124,31 @@ phase = ["Preparation", "Key Descend", "Key Bed", "Key Release", "Return to Neut
 
 # Transposing data for plotting
 phases = np.arange(len(I1_absolute_Values))  # Assuming each row is a different phase
+
 # Creating subplots
 fig, axe = plt.subplots(1, 1, figsize=(10, 8))
 
 for i, (v1, v2) in enumerate(zip(I1_absolute_Values, I2_absolute_Values)):
-    if i==1 or i==2:
+    if i == 1 or i == 2:
         axe.annotate(f'{percentage_diff_absolute_Value[i]:.2f}%',
                      xy=(phases[i] + 0.2, v2),
                      xytext=(1, 2),
                      textcoords='offset points',
-                     ha='center', va='bottom')
+                     ha='center', va='bottom',
+                     fontsize=12)  # Adjust font size for annotations
 
 # Bar graph for values 1 and 2 per each phase
-axe.bar(phases - 0.2, I1_absolute_Values, 0.4, label='DT Strategy')
-axe.bar(phases + 0.2, I2_absolute_Values, 0.4, label='ST Strategy')
-axe.set_title('Analysis of Tau Reduction Across Different Phases_'+ ("Pressed" if pressed else "Struck"))
-axe.set_xlabel('Phases')
-plt.xticks(phases, phase)
-axe.set_ylabel('Area Under Curve (AUC) of tau (absolute values) for the distal joints (N.m)')
-axe.legend()
+axe.bar(phases - 0.2, I1_absolute_Values, 0.4, label='DT Strategy', color='red')  # Set color to red for DT
+axe.bar(phases + 0.2, I2_absolute_Values, 0.4, label='ST Strategy', color='blue')  # Set color to blue for ST
+
+axe.set_title('Analysis of Tau Reduction Across Different Phases_' + ("Pressed" if pressed else "Struck"), fontsize=16)  # Adjust font size for title
+axe.set_xlabel('Phases', fontsize=14)  # Adjust font size for x-label
+plt.xticks(phases, phase, fontsize=12)  # Adjust font size for x-tick labels
+axe.set_ylabel('Area Under Curve (AUC) of tau (absolute values) for the distal joints (N.m)', fontsize=14)  # Adjust font size for y-label
+plt.yticks(fontsize=12)  # Adjust font size for y-tick labels
+axe.legend(fontsize=12)  # Adjust font size for legend
 axe.grid(True)
 
 # Adjust layout and show plot
 plt.tight_layout()
 plt.show()
-

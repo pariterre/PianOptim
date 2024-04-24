@@ -41,8 +41,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = ("Pressed_" if pressed else "Struck_")+ "With"
-label_2 = ("Pressed_" if pressed else "Struck_")+ "Without"
+label_1 = ("Pressed_" if pressed else "Struck_")+ "DT"
+label_2 = ("Pressed_" if pressed else "Struck_")+ "ST"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -120,13 +120,16 @@ for i in range(-12, 0):
     axs[1].legend()
 
     # Plot for tau
-    sns.lineplot(x=concatenated_array_time_s_1, y=concatenated_array_tau_s_1[i, :], color="red", drawstyle='steps-pre', label=label_1, ax=axs[2])
+    sns.lineplot(x=concatenated_array_time_s_1, y=concatenated_array_tau_s_1[i, :], color="red", drawstyle='steps-pre',
+                 label=label_1, ax=axs[2])
     if i >= -7:  # Check if data2 has this index
-        sns.lineplot(x=concatenated_array_time_s_2, y=concatenated_array_tau_s_2[i, :], color="blue", drawstyle='steps-pre', linestyle="--", label=label_2, ax=axs[2])
+        sns.lineplot(x=concatenated_array_time_s_2, y=concatenated_array_tau_s_2[i, :], color="blue",
+                     drawstyle='steps-pre', linestyle="--", label=label_2, ax=axs[2])
     axs[2].fill_betweenx(axs[2].get_ylim(), 0.3, 0.3701, color='gray', alpha=0.2)
-    axs[2].set_ylabel(r"$\tau$ (N/m)")
-    axs[2].set_xlabel("Time (sec)")
-    axs[2].legend()
+    axs[2].set_ylabel(r"$\tau$ (N/m)", fontsize=14)
+    axs[2].set_xlabel("Time (sec)", fontsize=14)
+    axs[2].tick_params(axis='both', which='major', labelsize=12)
+    axs[2].legend(fontsize=12)
 
     # Set common properties for all subplots
     for ax in axs:

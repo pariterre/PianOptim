@@ -213,9 +213,9 @@ ax_table_ST = fig.add_subplot(3, 1, 3)
 # Plot the final velocity for each node
 ax_graph.plot(range(num_nodes), final_z_velocity_per_node_DT, label='Final Velocity (DT)')
 ax_graph.plot(range(num_nodes), final_z_velocity_per_node_ST, label='Final Velocity (ST)')
-ax_graph.set_xlabel('Node')
-ax_graph.set_ylabel('Final Z Velocity')
-ax_graph.set_title('Final Z Velocity per Node')
+ax_graph.set_xlabel('Node', fontsize=16)
+ax_graph.set_ylabel('Final Z Velocity', fontsize=16)
+ax_graph.set_title('Final Z Velocity per Node', fontsize=16)
 ax_graph.legend()
 ax_graph.grid(True)
 
@@ -262,45 +262,45 @@ fig, (ax_shoulder, ax_wrist, ax_elbow) = plt.subplots(3, 1, figsize=(10, 12))
 # Plot the joint contributions for shoulder
 if 'Shoulder' in joint_dof_map_DT:
     shoulder_contributions_DT = [joint_contributions_by_nodes_DT[node_idx]['Shoulder'] for node_idx in range(num_nodes)]
-    ax_shoulder.plot(range(num_nodes), shoulder_contributions_DT, label='Shoulder (DT)', linestyle='-')
+    ax_shoulder.plot(range(num_nodes), shoulder_contributions_DT, label='Shoulder (DT)', linestyle='-', color="red")
 
 if 'Shoulder' in joint_dof_map_ST:
     shoulder_contributions_ST = [joint_contributions_by_nodes_ST[node_idx]['Shoulder'] for node_idx in range(num_nodes)]
-    ax_shoulder.plot(range(num_nodes), shoulder_contributions_ST, label='Shoulder (ST)', linestyle='--')
+    ax_shoulder.plot(range(num_nodes), shoulder_contributions_ST, label='Shoulder (ST)', linestyle='--', color="blue")
 
-ax_shoulder.set_xlabel('Node')
-ax_shoulder.set_ylabel('Z Velocity Contribution')
-ax_shoulder.set_title('Shoulder Contributions')
+ax_shoulder.set_xlabel('Node', fontsize=14)
+ax_shoulder.set_ylabel('Z Velocity Contribution', fontsize=14)
+ax_shoulder.set_title('Shoulder Contributions', fontsize=14)
 ax_shoulder.legend()
 ax_shoulder.grid(True)
 
 # Plot the joint contributions for wrist
 if 'Wrist' in joint_dof_map_DT:
     wrist_contributions_DT = [joint_contributions_by_nodes_DT[node_idx]['Wrist'] for node_idx in range(num_nodes)]
-    ax_wrist.plot(range(num_nodes), wrist_contributions_DT, label='Wrist (DT)', linestyle='-')
+    ax_wrist.plot(range(num_nodes), wrist_contributions_DT, label='Wrist (DT)', linestyle='-', color="red")
 
 if 'Wrist' in joint_dof_map_ST:
     wrist_contributions_ST = [joint_contributions_by_nodes_ST[node_idx]['Wrist'] for node_idx in range(num_nodes)]
-    ax_wrist.plot(range(num_nodes), wrist_contributions_ST, label='Wrist (ST)', linestyle='--')
+    ax_wrist.plot(range(num_nodes), wrist_contributions_ST, label='Wrist (ST)', linestyle='--', color="blue")
 
-ax_wrist.set_xlabel('Node')
-ax_wrist.set_ylabel('Z Velocity Contribution')
-ax_wrist.set_title('Wrist Contributions')
+ax_wrist.set_xlabel('Node', fontsize=14)
+ax_wrist.set_ylabel('Z Velocity Contribution', fontsize=14)
+ax_wrist.set_title('Wrist Contributions', fontsize=14)
 ax_wrist.legend()
 ax_wrist.grid(True)
 
 # Plot the joint contributions for elbow
 if 'Elbow' in joint_dof_map_DT:
     elbow_contributions_DT = [joint_contributions_by_nodes_DT[node_idx]['Elbow'] for node_idx in range(num_nodes)]
-    ax_elbow.plot(range(num_nodes), elbow_contributions_DT, label='Elbow (DT)', linestyle='-')
+    ax_elbow.plot(range(num_nodes), elbow_contributions_DT, label='Elbow (DT)', linestyle='-', color="red")
 
 if 'Elbow' in joint_dof_map_ST:
     elbow_contributions_ST = [joint_contributions_by_nodes_ST[node_idx]['Elbow'] for node_idx in range(num_nodes)]
-    ax_elbow.plot(range(num_nodes), elbow_contributions_ST, label='Elbow (ST)', linestyle='--')
+    ax_elbow.plot(range(num_nodes), elbow_contributions_ST, label='Elbow (ST)', linestyle='--', color="blue")
 
-ax_elbow.set_xlabel('Node')
-ax_elbow.set_ylabel('Z Velocity Contribution')
-ax_elbow.set_title('Elbow Contributions')
+ax_elbow.set_xlabel('Node', fontsize=14)
+ax_elbow.set_ylabel('Z Velocity Contribution', fontsize=14)
+ax_elbow.set_title('Elbow Contributions', fontsize=14)
 ax_elbow.legend()
 ax_elbow.grid(True)
 
