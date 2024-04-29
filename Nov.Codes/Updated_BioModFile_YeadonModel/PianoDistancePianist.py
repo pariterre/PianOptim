@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
 # Load the C3D file
-c3d_path = "/home/alpha/Desktop/Exp.Piano/Pressed_With.c3d"
+c3d_path = "/home/alpha/Desktop/Exp.Piano/Struck_Without.c3d"
 c3d = ezc3d.c3d(c3d_path)
 
 # Extract marker data
@@ -51,7 +51,7 @@ for name in marker_names:
     print(name)
 
 
-desired_markers = ["Piano:Piano_AigDown", "Piano:Piano_GraDown", "004:PSISr", "004:PSISl"]
+desired_markers = ["Piano:REF_audio_bof_vicon", "004:PSISr", "004:PSISl"]
 
 for frame in range(markers.shape[2]):
     print(f"Frame {frame + 1}:")
@@ -64,7 +64,7 @@ for frame in range(markers.shape[2]):
     print()
 
 # Select the desired markers
-desired_markers = ["Piano:Piano_AigDown", "Piano:Piano_GraDown", "004:PSISr", "004:PSISl"]
+desired_markers = ["Piano:REF_audio_bof_vicon", "004:PSISr", "004:PSISl"]
 desired_indices = [marker_names.index(marker) for marker in desired_markers]
 
 # Extract the data for the desired markers
@@ -112,7 +112,7 @@ parameters = c3d['parameters']
 marker_names = parameters['POINT']['LABELS']['value']
 
 # Select the desired markers
-desired_markers = ["Piano:Piano_AigDown", "Piano:Piano_GraDown", "004:PSISr", "004:PSISl"]
+desired_markers = ["Piano:REF_audio_bof_vicon", "004:PSISr", "004:PSISl"]
 marker_indices = [marker_names.index(marker) for marker in desired_markers]
 
 # Extract the data for the desired markers
@@ -138,7 +138,7 @@ for i, marker in enumerate(desired_markers):
     # Plot Z coordinates
     axs[i, 2].plot(range(n_frames), marker_data[2, i, :], label=marker)
     axs[i, 2].set_xlabel('Frame')
-    axs[i, 2].set_ylabel('Z')
+    axs[i, 2].set_ylabel('Z (mm)')
     axs[i, 2].legend()
 
 # Adjust spacing between subplots
@@ -147,3 +147,6 @@ plt.tight_layout()
 # Display the plot
 plt.show()
 
+print(np.mean(marker_data[1][0,:]))
+print(np.mean(marker_data[1][1,:]))
+print(np.mean(marker_data[1][2,:]))

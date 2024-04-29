@@ -23,12 +23,13 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124/"
+dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124_Q/"
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
 with open(saveName, "rb") as file:
     data_1 = pickle.load(file)
 
+# dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124_Qdot/"
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_without_Thorax.pckl"
 with open(saveName, "rb") as file:
@@ -40,8 +41,8 @@ specific_points_s_1 = [sum(data_1["phase_time"][: i + 1]) for i in range(len(dat
 specific_points_s_2 = [sum(data_2["phase_time"][: i + 1]) for i in range(len(data_2["phase_time"]))]
 
 # Labels for data_1 and data_2
-label_1 = ("Pressed_" if pressed else "Struck_")+ "With"
-label_2 = ("Pressed_" if pressed else "Struck_")+ "Without"
+label_1 = ("Pressed_" if pressed else "Struck_")+ "DT"
+label_2 = ("Pressed_" if pressed else "Struck_")+ "ST"
 
 # Processing data_1 and data_2 for q, qdot, tau
 # For data_1
@@ -118,8 +119,6 @@ for i in range(0,5):
 
     percentage_diff_absolute_Value[i]=((I1_absolute_Values[i]-I2_absolute_Values[i])/I2_absolute_Values[i]*100)
 
-
-
 phase = ["Preparation", "Key Descend", "Key Bed", "Key Release", "Return to Neutral"]
 
 # Transposing data for plotting
@@ -144,7 +143,7 @@ axe.bar(phases + 0.2, I2_absolute_Values, 0.4, label='ST Strategy', color='blue'
 axe.set_title('Analysis of Tau Reduction Across Different Phases_' + ("Pressed" if pressed else "Struck"), fontsize=16)  # Adjust font size for title
 axe.set_xlabel('Phases', fontsize=14)  # Adjust font size for x-label
 plt.xticks(phases, phase, fontsize=12)  # Adjust font size for x-tick labels
-axe.set_ylabel('Area Under Curve (AUC) of tau (absolute values) for the distal joints (N.m)', fontsize=14)  # Adjust font size for y-label
+axe.set_ylabel('Area Under Curve (AUC) of tau (absolute values) for the distal joints (N.m.sec)', fontsize=14)  # Adjust font size for y-label
 plt.yticks(fontsize=12)  # Adjust font size for y-tick labels
 axe.legend(fontsize=12)  # Adjust font size for legend
 axe.grid(True)

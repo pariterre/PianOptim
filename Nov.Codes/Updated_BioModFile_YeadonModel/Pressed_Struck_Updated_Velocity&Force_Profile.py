@@ -142,7 +142,7 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     # #
     for phase in [0, 1]:
         objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.2, index=wrist
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", phase=phase, weight=0.2, index=wrist
         )
 
     # Constraints

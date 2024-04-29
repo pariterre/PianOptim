@@ -28,7 +28,7 @@ def get_user_input():
 
 pressed = get_user_input()
 
-dirName = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Results/Updated_Profile_W200/"
+dirName  = "/home/alpha/pianoptim/PianOptim/Nov.Codes/Updated_BioModFile_YeadonModel/Updated_Biomod_Distance/Final_Presentation_25APril_124_Q/"
 
 
 saveName = dirName + ("Pressed" if pressed else "Struck") + "_with_Thorax.pckl"
@@ -132,7 +132,7 @@ def calculate_dimensionless_jerk(q, dt):
     return dimensionless_jerk
 
 # Define the joints of interest (by their indices)
-joints_of_interest = [5, 6, 8, 9]  # Indices for shoulder, elbow, wrist, and MCP
+joints_of_interest = [5, 8, 10, 11]  # Indices for shoulder, elbow, wrist, and MCP
 
 # Define the total number of phases
 num_phases = 5  # Update this if the number of phases is different
