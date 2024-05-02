@@ -141,17 +141,18 @@ num_phases = len(num_nodes_DT)
 fig, axs = plt.subplots(num_phases, 2, figsize=(12, 4 * num_phases), sharex=True)
 fig.suptitle('Relative Contributions of Joints to Nonlinear Effects' + ("_Pressed" if pressed else "_Struck"), fontsize=14)
 
-colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'yellow', 'black']
+colors_DT = ['blue', 'green', 'red', 'cyan', 'magenta', 'purple', 'brown']
+colors_ST = ['cyan', 'magenta', 'purple', 'brown']
 
 # Create dummy legend entries
-legend_entries_DT = [plt.Line2D([0], [0], color=color, label=joint, linestyle='-') for joint, color in zip(joint_map_DT, colors)]
-legend_entries_ST = [plt.Line2D([0], [0], color=color, label=joint, linestyle='-') for joint, color in zip(joint_map_ST, colors)]
+legend_entries_DT = [plt.Line2D([0], [0], color=color, label=joint, linestyle='-') for joint, color in zip(joint_map_DT, colors_DT)]
+legend_entries_ST = [plt.Line2D([0], [0], color=color, label=joint, linestyle='-') for joint, color in zip(joint_map_ST, colors_ST)]
 
 for k in range(num_phases):
     for i in range(num_nodes_DT[k]):
         total_effect_DT = sum(Nonlinear_Effects_per_joint_DT[joint][k][i] for joint in joint_map_DT)
         bottom = 0
-        for joint, color in zip(joint_map_DT, colors):
+        for joint, color in zip(joint_map_DT, colors_DT):
             effect = Nonlinear_Effects_per_joint_DT[joint][k][i]
             axs[k, 0].bar(i, effect / total_effect_DT, bottom=bottom, color=color)
             bottom += effect / total_effect_DT
@@ -162,7 +163,7 @@ for k in range(num_phases):
     for i in range(num_nodes_ST[k]):
         total_effect_ST = sum(Nonlinear_Effects_per_joint_ST[joint][k][i] for joint in joint_map_ST)
         bottom = 0
-        for joint, color in zip(joint_map_ST, colors):
+        for joint, color in zip(joint_map_ST, colors_ST):
             effect = Nonlinear_Effects_per_joint_ST[joint][k][i]
             axs[k, 1].bar(i, effect / total_effect_ST, bottom=bottom, color=color)
             bottom += effect / total_effect_ST
