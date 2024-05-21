@@ -20,9 +20,10 @@ The focus is on reducing torque loads on distal joints, which are prone to PRMDs
 
 The simulation covers five phases: Preparation, Key Descent, Key Bed, Key Release, and Return to Neutral. We used the bioptim library to define and solve an optimal control program (OCP) with constraints and objectives tailored to realistic piano playing movements.
 
-### Folder Descriptions
+### Folder Descriptions 
    
-    UDEM FILES
+    UDEM FILES  (You can ask Prof. Verdugo for access to this folder.)
+    
         EKSAP research day: Includes a poster and a one-page abstract about the project.
         Energy transferring: Contains articles on calculating or finding the flow of energy from proximal to distal joints.
         Literature review: Contains articles and a PowerPoint presentation worth checking out.
