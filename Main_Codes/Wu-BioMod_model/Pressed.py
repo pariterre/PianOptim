@@ -2,6 +2,7 @@
  !! Les axes du modèle ne sont pas les mêmes que ceux généralement utilisés en biomécanique : x axe de flexion, y supination/pronation, z vertical
  ici on a : Y -» X , Z-» Y et X -» Z
  """
+
 from casadi import MX, acos, dot, pi, Function
 import time
 import numpy as np
@@ -155,13 +156,17 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1000, index=dof_wrist_finger
         )
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=0.0001, index=dof_wrist_finger #all_dof_but_wrist_finger
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+            key="qdot",
+            phase=phase,
+            weight=0.0001,
+            index=dof_wrist_finger,  # all_dof_but_wrist_finger
         )
 
     # for phase in [1, 2]:
-        # objective_functions.add(
-        #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=[3, 7]
-        # )
+    # objective_functions.add(
+    #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1000, index=[3, 7]
+    # )
 
     # for phase in [3, 4]:
     #     objective_functions.add(
@@ -180,17 +185,10 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     # Velocity profile found thanks to the motion capture datas.
-    vel_push_array2 = [
-        [-0.114, -0.181, -0.270, -0.347, -0.291, -0.100,]  # MB: remove first and last
-    ]
+    vel_push_array2 = [[-0.114, -0.181, -0.270, -0.347, -0.291, -0.100]]  # MB: remove first and last
 
     # No finger's tip velocity at the start of phase 1
-    constraints.add(
-        ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1,
-        node=Node.START,
-        marker_index=4,
-    )
+    constraints.add(ConstraintFcn.TRACK_MARKERS_VELOCITY, phase=1, node=Node.START, marker_index=4)
 
     constraints.add(
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
@@ -203,15 +201,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
     )
 
     # No finger's tip velocity at the end of phase 1
-    constraints.add(
-        ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=1, node=Node.END,
-        marker_index=4,
-    )
+    constraints.add(ConstraintFcn.TRACK_MARKERS_VELOCITY, phase=1, node=Node.END, marker_index=4)
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=1, node=Node.END,
+        phase=1,
+        node=Node.END,
         first_marker="finger_marker",
         second_marker="low_square",
     )
@@ -221,15 +216,18 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         for idx in [0, 1]:
             constraints.add(
                 ConstraintFcn.TRACK_CONTACT_FORCES,
-                phase=2, node=node,
+                phase=2,
+                node=node,
                 contact_index=idx,
-                min_bound=-ForceProfile[node] / 3, max_bound=ForceProfile[node] / 3,
+                min_bound=-ForceProfile[node] / 3,
+                max_bound=ForceProfile[node] / 3,
                 quadratic=False,
             )
 
         constraints.add(
             ConstraintFcn.TRACK_CONTACT_FORCES,
-            phase=2, node=node,
+            phase=2,
+            node=node,
             contact_index=2,
             target=ForceProfile[node],
             quadratic=False,
@@ -238,14 +236,16 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=3, node=Node.END,
+        phase=3,
+        node=Node.END,
         first_marker="MCP_contact_finger",
         second_marker="phase_3_upward",
     )
 
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=4, node=Node.END,
+        phase=4,
+        node=Node.END,
         first_marker="finger_marker",
         second_marker="high_square",
     )
@@ -254,14 +254,16 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # To keep the index and the small finger above the bed key.
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             marker="finger_marker",
             min_bound=0,
             max_bound=np.inf,
         )
         constraints.add(
             custom_func_track_principal_finger_and_finger5_above_bed_key,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             marker="finger_marker_5",
             min_bound=0,
             max_bound=np.inf,
@@ -269,14 +271,16 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # To keep the small finger on the right of the principal finger.
         constraints.add(
             custom_func_track_finger_5_on_the_right_of_principal_finger,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             min_bound=0.00001,
             max_bound=np.inf,
         )
         # To keep the hand/index perpendicular of the key piano all long the attack.
         constraints.add(
             custom_func_track_principal_finger_pi_in_two_global_axis,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             segment="secondmc",
             target=np.full((1, n_shooting[phase] + 1), pi / 2),
             min_bound=-np.pi / 24,
@@ -285,7 +289,8 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         )
         constraints.add(
             custom_func_track_principal_finger_pi_in_two_global_axis,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             segment="2proxph_2mcp_flexion",
             target=np.full((1, n_shooting[phase] + 1), pi / 2),
             min_bound=-np.pi / 24,
@@ -295,10 +300,12 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
         # To block ulna rotation before the key pressing.
         constraints.add(
             ConstraintFcn.TRACK_STATE,
-            phase=phase, node=Node.ALL,
+            phase=phase,
+            node=Node.ALL,
             key="qdot",
             index=all_dof_but_wrist_finger[-1],  # prosupination
-            min_bound=-1, max_bound=1,
+            min_bound=-1,
+            max_bound=1,
             quadratic=False,
         )
 
@@ -330,7 +337,6 @@ def prepare_ocp(allDOF, pressed, ode_solver) -> OptimalControlProgram:
             x_init[phase]["q"][3, 0] = 1.11  # Elbow, Flexion and Extension
             x_init[phase]["q"][4, 0] = 1.48  # Elbow, Pronation and Supination
             x_init[phase]["q"][6, 0] = 0.17  # MCP, Flexion and Extension
-
 
     if allDOF:
         x_bounds[0]["q"][[0], 0] = -0.1  # waiting to see the BioMod file and visulization and then decide
@@ -374,7 +380,7 @@ def main():
     print(os.getcwd())
     polynomial_degree = 4
     allDOF = False
-    pressed = False #False means Struck
+    pressed = False  # False means Struck
 
     if allDOF:
         saveName = "/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_with_Thorax.pckl"
@@ -383,7 +389,9 @@ def main():
         saveName = "/home/alpha/Desktop/22Nov._Updated_BioMod/Pressed_without_Thorax.pckl"
         nq = 7
 
-    ocp = prepare_ocp(allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree))
+    ocp = prepare_ocp(
+        allDOF=allDOF, pressed=pressed, ode_solver=OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree)
+    )
 
     ocp.add_plot_penalty(CostType.ALL)
 
@@ -416,7 +424,6 @@ def main():
             sol.states[phase]["q"][:, idx], sol.states[phase]["qdot"][:, idx], sol.controls[phase]["tau"][:, i]
         )
     F_array = np.array(F)
-
 
     data = dict(
         states=sol.states,
