@@ -1,42 +1,38 @@
-# True_Pianoptim 
+# PianOptim
 
-The aim of this project is to define, through numerical simulation and optimal control, new performance strategies that might help reduce exposition to risk of injuries.
+An optimal control project to simulate piano
 
-# Grégoire 2021
+## Getting ready
 
-The file Piano_final_version.py is a simulation of 5 chords played fortissimo with optimized movements and external forces (keys interaction).
+### bioptim
 
-The file Pianoptim_V1 is a simplified version of the same 5 chords but neglecting keys interaction, so without external forces.
+Either the `bioptim` submodule is expected to appear in `dependencies/bioptim`. If the folder is empty, you should initialize it using git. 
 
-# Mathilde 2022
-FINAL MODELS DEVELOPED 
+Otherwise, `bioptim` can be installed using `conda` from the `conda-forge` channel. 
 
-- The file "2__final_models_piano >> 1___final_model___squeletum_hand_finger_1_key_4_phases" gathered simulations of 1 key (principal LA of the piano)
-played strucked staccato, and pressed staccato, with optimized movements and the key interaction, for different values of torque minimisation.
+### Prepare for vscode
 
-- The file "2__final_models_piano >> 1___final_model___squeletum_hand_finger_1_key_4_phases >> pressed >>
-4_multistart_different_minimisations >> multistart_pressed.py " is a multistart code to run multiple simulations
-with different minimisation weights at the same time. Just adapted for the pressed attack for the moment. The results are saved in the first file, and analyses are done in the other one. 
+In the `.vscode` folder, copy-paste the `.env.default` file to `.env`. Adjust the separator if neede (":" for UNIX and ";" for Windows). 
 
-OLD FINAL MODELS
 
-- The file "2__final_models_piano" also gathered old final models which were steps to reach the 5_final_final_model.
+## Things to discuss
 
-OTHER DOCUMENTS
+### What "not using the trunk" actually means?
 
-- The file "1__experimental_datas_and_calculations" gathered experimental datas taken from the lab server (access path 
-detailed in "experimental_data_access_path" file. 
-There are also calculations of useful dimensions.
+There are two ways to model this:
+1. We can remove the degrees-of-freedom for the trunk. This means it won't be able to move, but the dynamic of the arms is concurently messed up. The reason is any movement of the arm, whatever the internal forces it creates, can be balanced out by this infinitely strong trunk. So it may try to transfer as much generalized forces as possible to the trunk
+2. The second method is to constraint the trunk to have a velocity equals to zero at each nodes, effectively nullifying the movement of the trunk. This has the advantage of keeping the dynamic intact, but may be much harder to optimize
 
-- The file "3__two_models_of_squeletum_used" gathered two models of squeletum. In our model, the wrist and the hand come 
-from the "stanford_model", and the other limbs come from the "wu_model". This file gathered also .slt files format for 
-the used limbs, in order to open their mesh in a 3D software, in MeshLab for example.
+- Whatever what is decide, do we prescribe the pose actually held?
 
-- The file "4__lab_files" gathered non-important files.
+### What is the best way to model the press phase?
 
-- The file "a__show_bioMod.py" is to show a bioMod.
+- Should we track a speed profile of the key from actual data?
+- Should we track a force profile at the finger from actual data?
+- Should we model the force from key? Using an exponential to simulate the bed of the key? Free time?
+- Should we have a dynamic model of the sound? Artificial intelligence? Free time?
 
-- The file "b__animate_pckl_results" is to animate the a .pckl results file, saved during a simulation.
+### Fingers are way too lights
 
-- The file "c__CODE_EXPLAINATIONS_FILE" gathered technical explanations on codes developed, and some code advices.
-
+- This may cause (and probably is causing) problems when inverting the dynamics (reason why forced to use COLLOCATION?)
+- Is this relevent for the question we are trying to answer?

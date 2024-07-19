@@ -1,0 +1,6 @@
+[submodule "dependencies/bioptim"]
+	path = dependencies/bioptim
+	url = https://github.com/pyomeca/bioptim
+[submodule "dependencies/bioviz"]
+	path = dependencies/bioviz
+	url = https://github.com/pyomeca/bioviz
