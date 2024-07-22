@@ -25,6 +25,9 @@ There are two ways to model this:
 
 - Whatever what is decide, do we prescribe the pose actually held?
 
+### Impact of the finger on the key
+- Usually we should call the "IMPACT" phase transition when an impact occurs. Howerver, here, the impact is "smooth". Does that mean no impact phase transition is needed?
+
 ### What is the best way to model the press phase?
 
 - Should we track a speed profile of the key from actual data?
@@ -32,7 +35,7 @@ There are two ways to model this:
 - Should we model the force from key? Using an exponential to simulate the bed of the key? Free time?
 - Should we have a dynamic model of the sound? Artificial intelligence? Free time?
 
-### Fingers are way too lights
+### Fingers are way too light
 
-- This may cause (and probably is causing) problems when inverting the dynamics (reason why forced to use COLLOCATION?)
-- Is this relevent for the question we are trying to answer?
+- This may cause (and probably is causing) problems when inverting the matrix when computing the dynamics (reason why forced to use COLLOCATION?)
+- Is this even relevent to keep fingers for the question we are trying to answer?
