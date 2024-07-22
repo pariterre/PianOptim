@@ -134,6 +134,7 @@ def forward_dynamics_with_external_forces(
     qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
     tau = DynamicsFunctions.get(nlp.controls["tau"], controls)
     translational_force = compute_key_reaction_forces(nlp.model, q)
+    # TODO test why it does not converge (the force is too high?)
 
     # You can directly call biorbd function (as for ddq) or call bioptim accessor (as for dq)
     dq = DynamicsFunctions.compute_qdot(nlp, q, qdot)
