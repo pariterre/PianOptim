@@ -269,7 +269,7 @@ endmarker
 contact contact_finger
     parent RightFingers
     position 0.0015 0.0015 -0.046782999938
-    axis xyz  // Specifying the axis for the contact point
+    axis xy  // Specifying the axis for the contact point
 endcontact
 
 // Marker for the MCP

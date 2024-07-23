@@ -28,6 +28,9 @@ There are two ways to model this:
 ### Impact of the finger on the key
 - Usually we should call the "IMPACT" phase transition when an impact occurs. Howerver, here, the impact is "smooth". Does that mean no impact phase transition is needed?
 
+### Cost function
+- Power seems a good idea, but it is not integrated, meaning a huge torque is not balanced out by a huge penalty for one node if velocity is small, for the hole node. Meaning it can oscillate. Should we use LINEAR_CONTINUOUS? Should we add Power as an algebraic state?
+
 ### What is the best way to model the press phase?
 
 - Should we track a speed profile of the key from actual data?
