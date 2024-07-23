@@ -1,12 +1,13 @@
 from enum import Enum, auto
 
-from casadi import MX, SX, vertcat
+from casadi import MX, SX, vertcat, if_else
 import numpy as np
 
 from bioptim import (
     BiorbdModel,
     ObjectiveList,
-    PenaltyController,
+    PhaseTransitionList,
+    PhaseTransitionFcn,
     DynamicsList,
     ConstraintFcn,
     BoundsList,
@@ -138,7 +139,7 @@ def forward_dynamics_with_external_forces(
 
     # You can directly call biorbd function (as for ddq) or call bioptim accessor (as for dq)
     dq = DynamicsFunctions.compute_qdot(nlp, q, qdot)
-    ddq = nlp.model.forward_dynamics(q, qdot, tau, translational_forces=translational_force)
+    ddq = nlp.model.constrained_forward_dynamics(q, qdot, tau, translational_forces=translational_force)
 
     # the user has to choose if want to return the explicit dynamics dx/dt = f(x,u,p)
     # as the first argument of DynamicsEvaluation or
@@ -172,38 +173,15 @@ def compute_key_reaction_forces(model: Pianist, q: MX | SX):
     force_at_bed = 1
     force_increate_rate = 5e4
 
-    x = 0  # -10 * (finger[0] - key_top[0])
-    y = 0  # -10 * (finger[1] - key_top[1])
-    z = force_at_bed * np.exp(force_increate_rate * (finger_penetration - key_penetration_bed))
-    px = key_bottom[0]
-    py = key_bottom[1]
-    pz = key_bottom[2]
+    x = 0  # This is done via contact
+    y = 0  # This is done via contact
+    z = if_else(
+        finger[2] >= key_bottom[2] - 0.01, 0, 10
+    )  # force_at_bed * np.exp(force_increate_rate * (finger_penetration - key_penetration_bed))
+    px = finger[0]
+    py = finger[1]
+    pz = finger[2]
     return vertcat(x, y, z, px, py, pz)
-
-
-def minimum_finger_position(controller: PenaltyController, allowed_key_bed_penetration: float = 0.005) -> MX | SX:
-    """
-    Compute the position of the finger at the bottom of the key. Allow for a small penetration.
-    This constraint is not formally necessary as upward force on the body should prevent from going down too much.
-    It however helps the solver to converge by not going to position that produces large forces and get confused by it.
-
-    Parameters
-    ----------
-    q: MX | SX
-        The generalized coordinates of the system
-
-    Returns
-    -------
-    The position of the finger in the tuple[MX | SX] format
-    """
-    model = controller.model
-    q = controller.q.mx
-
-    finger = model.marker(q, model.marker_index("finger_marker"))
-    key_bottom = model.marker(q, model.marker_index("key1_base"))
-    penetration = finger[2] - (key_bottom[2] - allowed_key_bed_penetration)
-
-    return controller.mx_to_cx("penetration", penetration, controller.states["q"])
 
 
 def prepare_ocp(
@@ -237,10 +215,12 @@ def prepare_ocp(
     # Load the dynamic model
     pianist_models: list[Pianist] = []
     dynamics = DynamicsList()
+    phase_transitions = PhaseTransitionList()
     for i in range(n_phases):
         pianist_models.append(Pianist(model_path))
         if i == press_phase:
             dynamics.add(configure_forward_dynamics_with_external_forces, phase=i)
+            phase_transitions.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=i - 1)
         elif i == press_phase + 1:
             dynamics.add(configure_forward_dynamics_with_external_forces, phase=i)
         else:
@@ -268,6 +248,13 @@ def prepare_ocp(
         first_marker="finger_marker",
         second_marker="Key1_Top",
     )
+    constraints.add(
+        ConstraintFcn.TRACK_MARKERS_VELOCITY,
+        phase=0,
+        node=Node.END,
+        axes=[Axis.X, Axis.Y],
+        marker_index="finger_marker",
+    )
 
     if n_phases > press_phase:
         # The key should be at the key bed when the press phase ends
@@ -281,34 +268,15 @@ def prepare_ocp(
             weight=1000,
         )
 
-        # Do not allow the finger to go through the key bed
-        constraints.add(
-            minimum_finger_position,
-            phase=press_phase,
-            node=Node.ALL,
-            min_bound=0,
-            max_bound=np.inf,
-            allowed_key_bed_penetration=0.005,
-        )
-
     if n_phases > press_phase + 1:
         # Lift the finger from the key bed up to the top of the key
         constraints.add(
             ConstraintFcn.SUPERIMPOSE_MARKERS,
             phase=press_phase + 1,
             node=Node.END,
+            axes=Axis.Z,
             first_marker="finger_marker",
             second_marker="Key1_Top",
-        )
-
-        # Do not allow the finger to go through the key bed
-        constraints.add(
-            minimum_finger_position,
-            phase=press_phase + 1,
-            node=Node.ALL,
-            min_bound=0,
-            max_bound=np.inf,
-            allowed_key_bed_penetration=0.005,
         )
 
     if zero_position == ZeroPosition.MARKER and n_phases > press_phase + 2:
@@ -321,9 +289,10 @@ def prepare_ocp(
             target=np.array([0, 0, -0.1]),
         )
 
-    # Minimize the generalized forces to convexify the problem
+    # Minimization to convexify the problem
     for phase in range(n_phases):
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_POWER, key_control="tau", phase=phase, weight=1)
+        # objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1)
 
     # Declare the constraints on the states and controls
     x_bounds = BoundsList()
@@ -367,10 +336,11 @@ def prepare_ocp(
         x_bounds=x_bounds,
         u_bounds=u_bounds,
         x_init=x_init,
+        # phase_transitions=phase_transitions,
         objective_functions=objective_functions,
         constraints=constraints,
         ode_solver=ode_solver,
-        use_sx=True,
+        use_sx=False,
         n_threads=6,
     )
 
@@ -379,10 +349,10 @@ def main():
     model_path = "./models/pianist.bioMod"
     block_trunk = False
     n_phases = 4
-    n_shooting = (40, 30, 30, 40)
+    n_shooting = (100, 50, 50, 100)
     phase_time = (0.1, 0.05, 0.05, 0.1)
     zero_position = ZeroPosition.Q
-    ode_solver = OdeSolver.COLLOCATION()
+    ode_solver = OdeSolver.RK4(n_integration_steps=1)
 
     ocp = prepare_ocp(
         model_path=model_path,
@@ -395,12 +365,12 @@ def main():
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=False)
-    solv.set_maximum_iterations(500)  # TODO This should be be necessary
+    solv = Solver.IPOPT(show_online_optim=True)
+    solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 
     sol = ocp.solve(solv)
-    sol.graphs()
+    # sol.graphs()
     sol.animate()
 
 
