@@ -176,7 +176,7 @@ def compute_key_reaction_forces(model: Pianist, q: MX | SX):
     x = 0  # This is done via contact
     y = 0  # This is done via contact
     z = if_else(
-        finger[2] >= key_bottom[2] - 0.01, 0, 10
+        finger[2] >= key_bottom[2] - 0.01, 0, 30
     )  # force_at_bed * np.exp(force_increate_rate * (finger_penetration - key_penetration_bed))
     px = finger[0]
     py = finger[1]
@@ -294,6 +294,17 @@ def prepare_ocp(
         # objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1)
         objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1)
 
+    # Add time minimization
+    for phase in range(n_phases):
+        if phase == 0:
+            objective_functions.add(
+                ObjectiveFcn.Mayer.MINIMIZE_TIME,
+                phase=phase,
+                min_bound=0,
+                max_bound=phase_times[phase],
+                weight=1000,
+            )
+
     # Declare the constraints on the states and controls
     x_bounds = BoundsList()
     x_init = InitialGuessList()
@@ -365,12 +376,12 @@ def main():
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=True)
+    solv = Solver.IPOPT(show_online_optim=False)
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 
     sol = ocp.solve(solv)
-    # sol.graphs()
+    sol.graphs()
     sol.animate()
 
 
