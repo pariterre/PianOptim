@@ -42,3 +42,12 @@ There are two ways to model this:
 
 - This may cause (and probably is causing) problems when inverting the matrix when computing the dynamics (reason why forced to use COLLOCATION?)
 - Is this even relevent to keep fingers for the question we are trying to answer?
+
+
+
+# Discussion
+Comparer simulation tronc VS simulation tronc fixe
+Quel est le mécanisme utilisé quand on a beaucoup de DoF
+  - Plutôt postural
+  - Dépendance de la fonction objectif
+  - Quelles sont les coordinations qui permettent une utilisation efficace du tronc
