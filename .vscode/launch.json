@@ -8,7 +8,7 @@
             "name": "Pressed",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/pianoptim/pressed.py",
+            "program": "${workspaceFolder}/pianoptim/tata.py",
             "cwd": "${workspaceFolder}/pianoptim",
             "console": "integratedTerminal",
             "justMyCode": true,
