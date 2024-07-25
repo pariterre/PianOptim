@@ -12,6 +12,7 @@
             "cwd": "${workspaceFolder}/pianoptim",
             "console": "integratedTerminal",
             "justMyCode": true,
+            //"preLaunchTask": "Run python GUI server",
         }
     ]
 }
