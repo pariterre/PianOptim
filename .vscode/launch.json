@@ -5,7 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Pressed",
+            "name": "Struct",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pianoptim/struct.py",
+            "cwd": "${workspaceFolder}/pianoptim",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        }, 
+        {
+            "name": "Tata",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/pianoptim/tata.py",
@@ -13,6 +22,6 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             //"preLaunchTask": "Run python GUI server",
-        }
+        }, 
     ]
 }

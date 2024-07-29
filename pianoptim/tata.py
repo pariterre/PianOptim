@@ -48,10 +48,12 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
 
 def main():
     # --- Prepare the ocp --- #
-    ocp = prepare_ocp(biorbd_model_path="models/pendulum.bioMod", final_time=1, n_shooting=40)
+    ocp = prepare_ocp(biorbd_model_path="models/pendulum.bioMod", final_time=1, n_shooting=400)
     ocp.solve(
         Solver.IPOPT(
-            show_online_optim=True, show_options={"type": ShowOnlineType.TCP, "host": "localhost", "port": 3050}
+            show_online_optim=True,
+            show_options={"type": ShowOnlineType.TCP},
+            # show_online_optim=True
         )
     )
 
