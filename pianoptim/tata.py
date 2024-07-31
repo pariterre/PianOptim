@@ -180,7 +180,7 @@ def main():
     sol = ocp.solve(
         Solver.IPOPT(
             show_online_optim=True,
-            show_options={"type": ShowOnlineType.TCP},
+            show_options={"type": ShowOnlineType.SERVER, "show_bounds": True},
         )
     )
     sol.graphs(show_bounds=True)
