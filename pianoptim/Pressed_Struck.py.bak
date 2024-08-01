@@ -414,7 +414,7 @@ def process_condition(condition, polynomial_degree, dirName):
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=False)
+    solv = Solver.IPOPT()
     solv.set_maximum_iterations(1000)
     solv.set_linear_solver("ma57")
 

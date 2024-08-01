@@ -15,7 +15,7 @@ from bioptim import (
     OdeSolver,
     Solver,
     Axis,
-    ShowOnlineType,
+    OnlineOptim,
 )
 import numpy as np
 
@@ -235,8 +235,8 @@ def main():
     ocp.add_plot_penalty(CostType.ALL)
 
     solv = Solver.IPOPT(
-        show_online_optim=True,
-        show_options={"type": ShowOnlineType.SERVER},
+        online_optim=OnlineOptim.SERVER,
+        show_options={"type": OnlineOptim.SERVER},
     )
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
