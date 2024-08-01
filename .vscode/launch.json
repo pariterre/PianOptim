@@ -5,23 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Struct",
+            "name": "Struct play",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/pianoptim/struct.py",
+            "program": "${workspaceFolder}/pianoptim/struct_play.py",
             "cwd": "${workspaceFolder}/pianoptim",
             "console": "integratedTerminal",
             "justMyCode": true,
-        }, 
-        {
-            "name": "Tata",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/pianoptim/tata.py",
-            "cwd": "${workspaceFolder}/pianoptim",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            //"preLaunchTask": "Run python GUI server",
         }, 
     ]
 }
