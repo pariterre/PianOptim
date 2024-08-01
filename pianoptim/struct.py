@@ -25,6 +25,7 @@ from bioptim import (
     ConfigureProblem,
     DynamicsEvaluation,
     DynamicsFunctions,
+    ShowOnlineType,
 )
 
 # Joint indices in the biomechanical model:
@@ -376,7 +377,10 @@ def main():
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=False)
+    solv = Solver.IPOPT(
+        show_online_optim=True,
+        show_options={"type": ShowOnlineType.SERVER, "show_bounds": True},
+    )
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 
