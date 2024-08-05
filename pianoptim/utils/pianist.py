@@ -1,28 +1,77 @@
-from bioptim import BiorbdModel
-from casadi import MX, SX, vertcat, if_else
+from functools import cached_property
+
+from bioptim import BiorbdModel, Bounds
+from casadi import MX, SX, vertcat, if_else, nlpsol, DM, Function
 import numpy as np
 
 
 class Pianist(BiorbdModel):
-    q_for_hand_over_keyboard = np.array(
-        [
-            0.01727668684896449,
-            -0.010361215519040973,
-            -0.031655228839994644,
-            -0.005791243213463487,
-            -0.03353834947298232,
-            -0.4970400708065864,
-            0.1921422881472987,
-            0.5402828037880408,
-            -0.9409433651537537,
-            -0.012335229401281565,
-            0.03744995282765959,
-            0.7450306555722724,
-        ]
-    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, segments_to_apply_external_forces=["RightFingers"], **kwargs)
+
+    @property
+    def trunk_dof(self) -> list[int]:
+        """
+        Returns the index of the degrees of freedom of the trunk
+        """
+        return [0, 1, 2, 3]
+
+    @property
+    def hand_dof(self) -> list[int]:
+        """
+        Returns the index of the degrees of freedom of the hand
+        """
+        return [10, 11]
+
+    @cached_property
+    def q_hand_on_keyboard(self) -> np.array:
+        """
+        This runs the inverse kinematics to get the body position for the hand over the keyboard
+        """
+        q = MX.sym("q", self.nb_q, 1)
+
+        target = self.marker(q, self.marker_names.index("Key1_Top"))
+        finger = self.marker(q, self.marker_names.index("finger_marker"))
+
+        s = nlpsol("sol", "ipopt", {"x": q, "g": finger - target}, {"ipopt.print_level": 0})
+        return np.array(s(x0=np.zeros(self.nb_q), lbg=np.zeros(3), ubg=np.zeros(3))["x"])[:, 0]
+
+    @cached_property
+    def q_hand_above_keyboard(self) -> np.array:
+        """
+        This runs the inverse kinematics to get the body position for the hand over the keyboard
+        """
+        q = MX.sym("q", self.nb_q, 1)
+
+        target = self.marker(q, self.marker_names.index("key1_above"))
+        finger = self.marker(q, self.marker_names.index("finger_marker"))
+
+        s = nlpsol("sol", "ipopt", {"x": q, "g": finger - target}, {"ipopt.print_level": 0})
+        return np.array(s(x0=np.zeros(self.nb_q), lbg=np.zeros(3), ubg=np.zeros(3))["x"])[:, 0]
+
+    @property
+    def joint_torque_bounds(self) -> Bounds:
+        return Bounds(min_bound=[-40] * self.nb_tau, max_bound=[40] * self.nb_tau, key="tau")
+
+    def compute_marker_from_dm(self, q: DM, marker_name: str) -> DM:
+        """
+        Compute the position of a marker given the generalized coordinates
+
+        Parameters
+        ----------
+        q: DM
+            The generalized coordinates of the system
+        marker_name: str
+            The name of the marker to compute
+
+        Returns
+        -------
+        The position of the marker
+        """
+        q_sym = MX.sym("q", self.nb_q, 1)
+        func = Function("marker", [q_sym], [self.marker(q_sym, self.marker_names.index(marker_name))])
+        return func(q)
 
     def compute_key_reaction_forces(self, q: MX | SX):
         """
@@ -45,14 +94,23 @@ class Pianist(BiorbdModel):
         key_bottom = self.marker(q, self.marker_index("key1_base"))
 
         finger_penetration = key_top[2] - finger[2]
-        key_penetration_bed = key_top[2] - key_bottom[2]
+        max_penetration = key_top[2] - key_bottom[2]
         force_at_bed = 1
         force_increate_rate = 5e4
+        max_force = 10
 
         x = 0  # This is done via contact
         y = 0  # This is done via contact
-        # z = force_at_bed * np.exp(force_increate_rate * (finger_penetration - key_penetration_bed))
-        z = if_else(finger[2] >= key_bottom[2], 0, 30)  # Temporary until we get actual data
+        # z = force_at_bed * np.exp(force_increate_rate * (finger_penetration - max_penetration))
+        z = if_else(
+            finger_penetration < 0,  # Not penetrating
+            0,
+            if_else(
+                finger_penetration < max_penetration,
+                finger_penetration / max_penetration * max_force,
+                max_force,
+            ),
+        )  # Temporary until we get actual data
         px = finger[0]
         py = finger[1]
         pz = finger[2]

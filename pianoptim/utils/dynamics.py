@@ -1,5 +1,13 @@
-from bioptim import OptimalControlProgram, NonLinearProgram, ConfigureProblem, DynamicsEvaluation, DynamicsFunctions
-from casadi import MX, SX, vertcat
+from bioptim import (
+    OptimalControlProgram,
+    NonLinearProgram,
+    ConfigureProblem,
+    DynamicsEvaluation,
+    DynamicsFunctions,
+    CustomPlot,
+    PlotType,
+)
+from casadi import MX, SX, vertcat, Function
 
 from .pianist import Pianist
 
@@ -25,6 +33,8 @@ class PianistDyanmics:
         ConfigureProblem.configure_qdot(ocp, nlp, as_states=True, as_controls=False)
         ConfigureProblem.configure_tau(ocp, nlp, as_states=False, as_controls=True)
         ConfigureProblem.configure_dynamics_function(ocp, nlp, PianistDyanmics.forward_dynamics_with_external_forces)
+
+        ConfigureProblem.configure_contact_function(ocp, nlp, DynamicsFunctions.forces_from_torque_driven)
 
     @staticmethod
     def forward_dynamics_with_external_forces(
@@ -66,14 +76,9 @@ class PianistDyanmics:
         q = DynamicsFunctions.get(nlp.states["q"], states)
         qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
         tau = DynamicsFunctions.get(nlp.controls["tau"], controls)
-        translational_force = nlp.model.compute_key_reaction_forces(q)
+        translational_force = model.compute_key_reaction_forces(q)
 
-        # You can directly call biorbd function (as for ddq) or call bioptim accessor (as for dq)
         dq = DynamicsFunctions.compute_qdot(nlp, q, qdot)
         ddq = model.constrained_forward_dynamics(q, qdot, tau, translational_forces=translational_force)
 
-        # the user has to choose if want to return the explicit dynamics dx/dt = f(x,u,p)
-        # as the first argument of DynamicsEvaluation or
-        # the implicit dynamics f(x,u,p,xdot)=0 as the second argument
-        # which may be useful for IRK or COLLOCATION integrators
         return DynamicsEvaluation(dxdt=vertcat(dq, ddq), defects=None)
