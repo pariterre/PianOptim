@@ -207,7 +207,10 @@ def main():
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(online_optim=OnlineOptim.MULTIPROCESS_SERVER, show_options={"show_bounds": True})
+    solv = Solver.IPOPT(
+        online_optim=OnlineOptim.MULTIPROCESS_SERVER,
+        show_options={"show_bounds": True, "automatically_organize": False},
+    )
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 

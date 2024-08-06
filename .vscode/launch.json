@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Press key only",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pianoptim/press_key_only.py",
+            "cwd": "${workspaceFolder}/pianoptim",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        }, 
+        {
             "name": "Struct play",
             "type": "debugpy",
             "request": "launch",
