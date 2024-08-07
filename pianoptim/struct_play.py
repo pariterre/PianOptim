@@ -1,13 +1,7 @@
 from enum import Enum, auto
 
-from casadi import MX, SX, vertcat, if_else
-import numpy as np
-
 from bioptim import (
-    BiorbdModel,
     ObjectiveList,
-    PhaseTransitionList,
-    PhaseTransitionFcn,
     DynamicsList,
     ConstraintFcn,
     BoundsList,
@@ -21,11 +15,13 @@ from bioptim import (
     OdeSolver,
     Solver,
     Axis,
-    NonLinearProgram,
-    ConfigureProblem,
-    DynamicsEvaluation,
-    DynamicsFunctions,
+    ShowOnlineType,
 )
+import numpy as np
+
+from utils.pianist import Pianist
+from utils.dynamics import PianistDyanmics
+
 
 # Joint indices in the biomechanical model:
 # 0. Pelvic Tilt: Anterior (+) Tilt / Posterior (-) Tilt
@@ -54,136 +50,6 @@ class ZeroPosition(Enum):
     MARKER = auto()
 
 
-class Pianist(BiorbdModel):
-    q_for_hand_over_keyboard = np.array(
-        [
-            0.01727668684896449,
-            -0.010361215519040973,
-            -0.031655228839994644,
-            -0.005791243213463487,
-            -0.03353834947298232,
-            -0.4970400708065864,
-            0.1921422881472987,
-            0.5402828037880408,
-            -0.9409433651537537,
-            -0.012335229401281565,
-            0.03744995282765959,
-            0.7450306555722724,
-        ]
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, segments_to_apply_external_forces=["RightFingers"], **kwargs)
-
-
-def configure_forward_dynamics_with_external_forces(
-    ocp: OptimalControlProgram, nlp: NonLinearProgram, numerical_data_timeseries=None
-):
-    """
-    Tell the program which variables are states and controls.
-    The user is expected to use the ConfigureProblem.configure_xxx functions.
-
-    Parameters
-    ----------
-    ocp: OptimalControlProgram
-        A reference to the ocp
-    nlp: NonLinearProgram
-        A reference to the phase
-    """
-
-    ConfigureProblem.configure_q(ocp, nlp, as_states=True, as_controls=False)
-    ConfigureProblem.configure_qdot(ocp, nlp, as_states=True, as_controls=False)
-    ConfigureProblem.configure_tau(ocp, nlp, as_states=False, as_controls=True)
-    ConfigureProblem.configure_dynamics_function(ocp, nlp, forward_dynamics_with_external_forces)
-
-
-def forward_dynamics_with_external_forces(
-    time: MX | SX,
-    states: MX | SX,
-    controls: MX | SX,
-    parameters: MX | SX,
-    algebraic_states: MX | SX,
-    numerical_timeseries: MX | SX,
-    nlp: NonLinearProgram,
-) -> DynamicsEvaluation:
-    """
-    The custom dynamics function that provides the derivative of the states: dxdt = f(x, u, p)
-
-    Parameters
-    ----------
-    time: MX | SX
-        The time of the system
-    states: MX | SX
-        The state of the system
-    controls: MX | SX
-        The controls of the system
-    parameters: MX | SX
-        The parameters acting on the system
-    algebraic_states: MX | SX
-        The algebraic states of the system
-    nlp: NonLinearProgram
-        A reference to the phase
-    my_additional_factor: int
-        An example of an extra parameter sent by the user
-
-    Returns
-    -------
-    The derivative of the states in the tuple[MX | SX] format
-    """
-
-    q = DynamicsFunctions.get(nlp.states["q"], states)
-    qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
-    tau = DynamicsFunctions.get(nlp.controls["tau"], controls)
-    translational_force = compute_key_reaction_forces(nlp.model, q)
-    # TODO test why it does not converge (the force is too high?)
-
-    # You can directly call biorbd function (as for ddq) or call bioptim accessor (as for dq)
-    dq = DynamicsFunctions.compute_qdot(nlp, q, qdot)
-    ddq = nlp.model.constrained_forward_dynamics(q, qdot, tau, translational_forces=translational_force)
-
-    # the user has to choose if want to return the explicit dynamics dx/dt = f(x,u,p)
-    # as the first argument of DynamicsEvaluation or
-    # the implicit dynamics f(x,u,p,xdot)=0 as the second argument
-    # which may be useful for IRK or COLLOCATION integrators
-    return DynamicsEvaluation(dxdt=vertcat(dq, ddq), defects=None)
-
-
-def compute_key_reaction_forces(model: Pianist, q: MX | SX):
-    """
-    Compute the external forces based on the position of the finger. The force is an exponential function based on the
-    depth of the finger in the key. The force is null if the finger is over the key, the force slowly increases
-    during the course of the movement as the finger presses the key, and finally increases drastically as it reaches
-    the bottom of the key.
-
-    Parameters
-    ----------
-    q: MX | SX
-        The generalized coordinates of the system
-
-    Returns
-    -------
-    The external forces in the tuple[MX | SX] format
-    """
-    finger = model.marker(q, model.marker_index("finger_marker"))
-    key_top = model.marker(q, model.marker_index("Key1_Top"))
-    key_bottom = model.marker(q, model.marker_index("key1_base"))
-
-    finger_penetration = key_top[2] - finger[2]
-    key_penetration_bed = key_top[2] - key_bottom[2]
-    force_at_bed = 1
-    force_increate_rate = 5e4
-
-    x = 0  # This is done via contact
-    y = 0  # This is done via contact
-    z = if_else(
-        finger[2] >= key_bottom[2] - 0.01, 0, 30
-    )  # force_at_bed * np.exp(force_increate_rate * (finger_penetration - key_penetration_bed))
-    px = finger[0]
-    py = finger[1]
-    pz = finger[2]
-    return vertcat(x, y, z, px, py, pz)
-
-
 def prepare_ocp(
     model_path: str,
     n_phases: int,
@@ -195,7 +61,13 @@ def prepare_ocp(
 ) -> OptimalControlProgram:
 
     trunk_dof = range(6)
-    press_phase = 1
+
+    prep_phase = 0
+    down_phase = 1
+    up_phase = 2
+    end_phase = 3
+
+    tau_min, tau_max = -40, 40
 
     # Control the inputs
     if len(n_shootings) < n_phases:
@@ -212,55 +84,79 @@ def prepare_ocp(
         )
     phase_times = phase_times[:n_phases]
 
-    # Load the dynamic model
     pianist_models: list[Pianist] = []
     dynamics = DynamicsList()
-    phase_transitions = PhaseTransitionList()
-    for i in range(n_phases):
-        pianist_models.append(Pianist(model_path))
-        if i == press_phase:
-            dynamics.add(configure_forward_dynamics_with_external_forces, phase=i)
-            phase_transitions.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=i - 1)
-        elif i == press_phase + 1:
-            dynamics.add(configure_forward_dynamics_with_external_forces, phase=i)
-        else:
-            dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=i)
-
-    # Declare the penalty functions so it produces a piano press movement
+    x_bounds = BoundsList()
+    x_init = InitialGuessList()
+    u_bounds = BoundsList()
     objective_functions = ObjectiveList()
     constraints = ConstraintList()
 
-    # Constraints
-    # Rest the finger on the key for the whole preparation phase
+    # Load and constraints the dynamic model
+    for phase in range(n_phases):
+        model = Pianist(model_path)
+        pianist_models.append(model)
+
+        if phase == down_phase:
+            dynamics.add(PianistDyanmics.configure_forward_dynamics_with_external_forces, phase=phase)
+        elif phase == up_phase:
+            dynamics.add(PianistDyanmics.configure_forward_dynamics_with_external_forces, phase=phase)
+        else:
+            dynamics.add(DynamicsFcn.TORQUE_DRIVEN, phase=phase)
+
+        x_bounds.add("q", bounds=model.bounds_from_ranges("q"), phase=phase)
+        x_init.add("q", model.q_for_hand_over_keyboard, phase=phase)
+        x_bounds.add("qdot", bounds=model.bounds_from_ranges("qdot"), phase=phase)
+        u_bounds.add("tau", min_bound=[tau_min] * model.nb_tau, max_bound=[tau_max] * model.nb_tau, phase=phase)
+
+        # Minimization to convexify the problem
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=0.01)
+
+    # The first and last frames are at rest
+    x_bounds[0]["qdot"][:, 0] = 0
+    x_bounds[-1]["qdot"][:, -1] = 0
+
+    # The trunk should not move if requested
+    if block_trunk:
+        for phase in range(n_phases):
+            x_bounds[phase]["qdot"][trunk_dof, :] = 0
+
+    # Start with the finger on the key
     if zero_position == ZeroPosition.MARKER:
         constraints.add(
             ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=0,
+            phase=prep_phase,
             node=Node.START,
             first_marker="finger_marker",
             second_marker="Key1_Top",
             target=np.array([0, 0, -0.1]),
         )
+    elif zero_position == ZeroPosition.Q:
+        x_bounds[prep_phase]["q"][:, 0] = model.q_for_hand_over_keyboard
+    else:
+        raise ValueError("Invalid initial position")
+
+    # The finger should be at the top of the key at the end of the first phase and not moving in the horizontal plane
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
-        phase=0,
+        phase=prep_phase,
         node=Node.END,
         first_marker="finger_marker",
         second_marker="Key1_Top",
     )
     constraints.add(
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
-        phase=0,
+        phase=prep_phase,
         node=Node.END,
         axes=[Axis.X, Axis.Y],
         marker_index="finger_marker",
     )
 
-    if n_phases > press_phase:
-        # The key should be at the key bed when the press phase ends
+    # The key should be at its bottom at the end of the press phase
+    if n_phases > down_phase:
         objective_functions.add(
             ObjectiveFcn.Mayer.TRACK_MARKERS,
-            phase=press_phase,
+            phase=down_phase,
             node=Node.END,
             marker_index="finger_marker",
             quadratic=False,
@@ -268,75 +164,38 @@ def prepare_ocp(
             weight=1000,
         )
 
-    if n_phases > press_phase + 1:
+    # The key should be fully lifted at the end of the up phase (press_phase
+    if n_phases > up_phase:
         # Lift the finger from the key bed up to the top of the key
         constraints.add(
             ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=press_phase + 1,
+            phase=up_phase,
             node=Node.END,
             axes=Axis.Z,
             first_marker="finger_marker",
             second_marker="Key1_Top",
         )
 
-    if zero_position == ZeroPosition.MARKER and n_phases > press_phase + 2:
-        constraints.add(
-            ConstraintFcn.SUPERIMPOSE_MARKERS,
-            phase=n_phases - 1,
-            node=Node.END,
-            first_marker="finger_marker",
-            second_marker="Key1_Top",
-            target=np.array([0, 0, -0.1]),
-        )
-
-    # Minimization to convexify the problem
-    for phase in range(n_phases):
-        # objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", phase=phase, weight=1)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=phase, weight=1)
+    if n_phases > end_phase:
+        if zero_position == ZeroPosition.MARKER:
+            constraints.add(
+                ConstraintFcn.SUPERIMPOSE_MARKERS,
+                phase=end_phase,
+                node=Node.END,
+                first_marker="finger_marker",
+                second_marker="Key1_Top",
+                target=np.array([0, 0, -0.1]),
+            )
+        elif zero_position == ZeroPosition.Q:
+            x_bounds[end_phase]["q"][:, -1] = model.q_for_hand_over_keyboard
+        else:
+            raise ValueError("Invalid final position")
 
     # Add time minimization
-    for phase in range(n_phases):
-        if phase == 0:
-            objective_functions.add(
-                ObjectiveFcn.Mayer.MINIMIZE_TIME,
-                phase=phase,
-                min_bound=0,
-                max_bound=phase_times[phase],
-                weight=1000,
-            )
-
-    # Declare the constraints on the states and controls
-    x_bounds = BoundsList()
-    x_init = InitialGuessList()
-    u_bounds = BoundsList()
-    tau_min, tau_max = -100, 100
-
-    for phase in range(n_phases):
-        model = pianist_models[phase]
-
-        x_bounds.add("q", bounds=model.bounds_from_ranges("q"), phase=phase)
-        x_bounds.add("qdot", bounds=model.bounds_from_ranges("qdot"), phase=phase)
-
-        if phase == 0:
-            if zero_position == ZeroPosition.Q:
-                # The first frame is prescribed
-                x_bounds[phase]["q"][:, 0] = model.q_for_hand_over_keyboard
-            # The first frame is at rest
-            x_bounds[phase]["qdot"][:, 0] = 0
-        if phase == n_phases - 1:
-            if zero_position == ZeroPosition.Q and n_phases > press_phase + 2:
-                # The last frame is prescribed if we are simulating the return to neutral phase
-                x_bounds[phase]["q"][:, -1] = model.q_for_hand_over_keyboard
-            # The last frame is at rest
-            x_bounds[phase]["qdot"][:, -1] = 0
-
-        x_init.add("q", model.q_for_hand_over_keyboard, phase=phase)
-
-        if block_trunk:
-            x_bounds[phase]["q"][trunk_dof, :] = 0
-            x_bounds[phase]["qdot"][trunk_dof, :] = 0
-
-        u_bounds.add("tau", min_bound=[tau_min] * model.nb_tau, max_bound=[tau_max] * model.nb_tau, phase=phase)
+    for phase in [prep_phase, down_phase, up_phase, end_phase]:
+        objective_functions.add(
+            ObjectiveFcn.Mayer.MINIMIZE_TIME, phase=phase, min_bound=0, max_bound=phase_times[phase], weight=1000
+        )
 
     # Prepare the optimal control program
     return OptimalControlProgram(
@@ -347,7 +206,6 @@ def prepare_ocp(
         x_bounds=x_bounds,
         u_bounds=u_bounds,
         x_init=x_init,
-        # phase_transitions=phase_transitions,
         objective_functions=objective_functions,
         constraints=constraints,
         ode_solver=ode_solver,
@@ -362,7 +220,7 @@ def main():
     n_phases = 4
     n_shooting = (100, 50, 50, 100)
     phase_time = (0.1, 0.05, 0.05, 0.1)
-    zero_position = ZeroPosition.Q
+    zero_position = ZeroPosition.MARKER
     ode_solver = OdeSolver.RK4(n_integration_steps=1)
 
     ocp = prepare_ocp(
@@ -376,12 +234,15 @@ def main():
     )
     ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=False)
+    solv = Solver.IPOPT(
+        show_online_optim=True,
+        show_options={"type": ShowOnlineType.SERVER},
+    )
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 
     sol = ocp.solve(solv)
-    sol.graphs()
+    # sol.graphs()
     sol.animate()
 
 

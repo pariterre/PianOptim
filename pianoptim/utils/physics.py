@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def calculate_joint_energy_transfer(q, qdot, tau, dt):
     # Calculate joint power
     joint_power = tau * qdot
