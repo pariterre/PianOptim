@@ -82,7 +82,7 @@ def prepare_ocp(
         marker_index="finger_marker",
         axes=Axis.Z,
         quadratic=False,
-        weight=-1000,
+        weight=1000,
     )
 
     # Prepare the optimal control program

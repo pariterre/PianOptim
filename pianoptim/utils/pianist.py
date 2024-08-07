@@ -93,11 +93,11 @@ class Pianist(BiorbdModel):
         key_top = self.marker(q, self.marker_index("Key1_Top"))
         key_bottom = self.marker(q, self.marker_index("key1_base"))
 
-        finger_penetration = np.mean(key_top[2] - key_bottom[2]) - finger[2]
+        finger_penetration = key_top[2] - finger[2]
         max_penetration = key_top[2] - key_bottom[2]
         force_at_bed = 1
         force_increate_rate = 5e4
-        max_force = 10
+        max_force = 30
 
         x = 0  # This is done via contact
         y = 0  # This is done via contact
