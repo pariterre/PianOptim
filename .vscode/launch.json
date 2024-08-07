@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Pressed",
+            "name": "Struct play",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/pianoptim/pressed.py",
+            "program": "${workspaceFolder}/pianoptim/struct_play.py",
             "cwd": "${workspaceFolder}/pianoptim",
             "console": "integratedTerminal",
             "justMyCode": true,
