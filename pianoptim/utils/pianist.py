@@ -54,7 +54,7 @@ class Pianist(BiorbdModel):
     def joint_torque_bounds(self) -> Bounds:
         return Bounds(min_bound=[-40] * self.nb_tau, max_bound=[40] * self.nb_tau, key="tau")
 
-    def compute_marker_from_dm(self, q: DM, marker_name: str) -> DM:
+    def compute_marker_from_dm(self, q: DM, marker_name: str, zero_name: str | None = None) -> DM:
         """
         Compute the position of a marker given the generalized coordinates
 
@@ -64,13 +64,19 @@ class Pianist(BiorbdModel):
             The generalized coordinates of the system
         marker_name: str
             The name of the marker to compute
+        zero_name: str | None
+            The name of the marker to substract to the marker
 
         Returns
         -------
         The position of the marker
         """
         q_sym = MX.sym("q", self.nb_q, 1)
-        func = Function("marker", [q_sym], [self.marker(q_sym, self.marker_names.index(marker_name))])
+        marker = self.marker(q_sym, self.marker_names.index(marker_name))
+        if zero_name is not None:
+            zero = self.marker(q_sym, self.marker_names.index(zero_name))
+            marker = marker - zero
+        func = Function("marker", [q_sym], [marker])
         return func(q)
 
     def compute_key_reaction_forces(self, q: MX | SX):
@@ -107,7 +113,7 @@ class Pianist(BiorbdModel):
             0,
             if_else(
                 finger_penetration < max_penetration,
-                finger_penetration / max_penetration * max_force,
+                max_force / 2,
                 max_force,
             ),
         )  # Temporary until we get actual data

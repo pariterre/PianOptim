@@ -104,9 +104,9 @@ def prepare_ocp(
     # Add a graph that shows the finger height
     ocp.add_plot(
         "Finger height",
-        lambda t0, phases_dt, node_idx, x, u, p, a, d: model.compute_marker_from_dm(x[: model.nb_q], "finger_marker")[
-            2, :
-        ]
+        lambda t0, phases_dt, node_idx, x, u, p, a, d: model.compute_marker_from_dm(
+            x[: model.nb_q], "finger_marker", "Key1_Top"
+        )[2, :]
         * 1000,
         plot_type=PlotType.INTEGRATED,
     )
@@ -117,10 +117,10 @@ def prepare_ocp(
 
 def main():
     model_path = "./models/pianist.bioMod"
-    n_shooting = 100
-    min_phase_time = 0.02
-    max_phase_time = 0.02
-    ode_solver = OdeSolver.RK4(n_integration_steps=1)
+    n_shooting = 20
+    min_phase_time = 0.01
+    max_phase_time = 0.01
+    ode_solver = OdeSolver.RK4(n_integration_steps=5)
 
     ocp = prepare_ocp(
         model_path=model_path,
