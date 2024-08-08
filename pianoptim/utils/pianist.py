@@ -79,7 +79,7 @@ class Pianist(BiorbdModel):
         func = Function("marker", [q_sym], [marker])
         return func(q)
 
-    def compute_key_reaction_forces(self, q: MX | SX):
+    def compute_key_reaction_forces(self, q: MX | SX) -> MX | SX:
         """
         Compute the external forces based on the position of the finger. The force is an exponential function based on the
         depth of the finger in the key. The force is null if the finger is over the key, the force slowly increases
@@ -108,16 +108,58 @@ class Pianist(BiorbdModel):
         x = 0  # This is done via contact
         y = 0  # This is done via contact
         # z = force_at_bed * np.exp(force_increate_rate * (finger_penetration - max_penetration))
-        z = if_else(
-            finger_penetration < 0,  # Not penetrating
-            0,
-            if_else(
-                finger_penetration < max_penetration,
-                max_force / 2,
-                max_force,
-            ),
-        )  # Temporary until we get actual data
+        # Temporary until we get actual data
+        z = if_else(finger_penetration < 0, 0, 10)  # finger_penetration / max_penetration * max_force)
         px = finger[0]
         py = finger[1]
         pz = finger[2]
         return vertcat(x, y, z, px, py, pz)
+
+    def compute_key_reaction_forces_dm(self, q: DM) -> DM:
+        """
+        Interface to compute_key_reaction_forces for DM
+        """
+
+        q_sym = MX.sym("q", self.nb_q, 1)
+        func = Function("forces", [q_sym], [self.compute_key_reaction_forces(q_sym)])
+        return func(q)
+
+    def normalized_friction_force(self, q: MX | SX, qdot: MX | SX, tau: MX | SX, mu: float) -> MX | SX:
+        """
+        Compute the friction force on the key
+
+        Parameters
+        ----------
+        q: MX | SX
+            The generalized coordinates of the system
+        qdot: MX | SX
+            The generalized velocities of the system
+        tau: MX | SX
+            The generalized forces of the system
+        mu: float
+            The friction coefficient
+
+        Returns
+        -------
+        The friction force in the tuple[MX | SX] format
+        """
+        forces = self.compute_key_reaction_forces(q)
+        forces[2] += 0.00001  # To avoid division by 0
+
+        normalized_contact = self.contact_forces(q, qdot, tau) / forces[2]
+        normalized_horizontal_forces_squared = normalized_contact[0] ** 2 + normalized_contact[1] ** 2
+
+        # The horizontal forces are in the cone of friction if this returns [-1, 1]
+        return normalized_horizontal_forces_squared / mu**2
+
+    def normalized_friction_force_dm(self, q: DM, qdot: DM, tau: DM, mu: float) -> DM:
+        """
+        Interface to normalize_friction_force_on_key for DM
+        """
+        q_sym = MX.sym("q", self.nb_q, 1)
+        qdot_sym = MX.sym("qdot", self.nb_q, 1)
+        tau_sym = MX.sym("tau", self.nb_tau, 1)
+        func = Function(
+            "forces", [q_sym, qdot_sym, tau_sym], [self.normalized_friction_force(q_sym, qdot_sym, tau_sym, mu)]
+        )
+        return func(q, qdot, tau)

@@ -15,6 +15,7 @@ from bioptim import (
     OnlineOptim,
     PlotType,
 )
+import numpy as np
 
 from utils.pianist import Pianist
 from utils.dynamics import PianistDyanmics
@@ -69,12 +70,24 @@ def prepare_ocp(
     constraints.add(
         ConstraintFcn.SUPERIMPOSE_MARKERS,
         phase=0,
+        node=Node.ALL,
+        first_marker="finger_marker",
+        second_marker="Key1_Top",
+        min_bound=-np.inf,
+        max_bound=0,
+    )
+    constraints.add(
+        ConstraintFcn.SUPERIMPOSE_MARKERS,
+        phase=0,
         node=Node.END,
         first_marker="finger_marker",
         second_marker="Key1_Top",
         axes=Axis.Z,
     )
     x_bounds["qdot"][:, 0] = 0
+
+    # Finger should not slip from the key
+    constraints.add(PianistDyanmics.normalized_friction_force, node=Node.ALL, min_bound=-1, max_bound=1, mu=1.0)
 
     # The key should be fully pressed as long as possible
     objective_functions.add(
@@ -103,12 +116,26 @@ def prepare_ocp(
 
     # Add a graph that shows the finger height
     ocp.add_plot(
-        "Finger height",
+        "Finger height (mm)",
         lambda t0, phases_dt, node_idx, x, u, p, a, d: model.compute_marker_from_dm(
-            x[: model.nb_q], "finger_marker", "Key1_Top"
+            x[: model.nb_q, :], "finger_marker", "Key1_Top"
         )[2, :]
         * 1000,
         plot_type=PlotType.INTEGRATED,
+    )
+    ocp.add_plot(
+        "Reaction forces on the key",
+        lambda t0, phases_dt, node_idx, x, u, p, a, d: model.compute_key_reaction_forces_dm(x[: model.nb_q, :])[2, :],
+        legend=["Reaction forces"],
+        axes_idx=[1],
+    )
+    ocp.add_plot(
+        "Reaction forces on the key",
+        lambda t0, phases_dt, node_idx, x, u, p, a, d: model.normalized_friction_force_dm(
+            x[: model.nb_q, :], x[model.nb_q :, :], u[: model.nb_q], mu=1.0
+        ),
+        legend=["Normalized friction forces"],
+        axes_idx=[0],
     )
     ocp.add_plot_penalty(CostType.ALL)
 

@@ -4,10 +4,9 @@ from bioptim import (
     ConfigureProblem,
     DynamicsEvaluation,
     DynamicsFunctions,
-    CustomPlot,
-    PlotType,
+    PenaltyController,
 )
-from casadi import MX, SX, vertcat, Function
+from casadi import MX, SX, vertcat, if_else
 
 from .pianist import Pianist
 
@@ -82,3 +81,29 @@ class PianistDyanmics:
         ddq = model.constrained_forward_dynamics(q, qdot, tau, translational_forces=translational_force)
 
         return DynamicsEvaluation(dxdt=vertcat(dq, ddq), defects=None)
+
+    @staticmethod
+    def normalized_friction_force(
+        controller: PenaltyController,
+        mu: float,
+    ):
+        """
+        Add a constraint of static friction at contact points constraining for small tangential forces.
+        This function make the assumption that normal_force is always positive
+        That is mu*normal_force = tangential_force. To prevent from using a square root, the previous
+        equation is squared
+
+        Parameters
+        ----------
+        constraint: Constraint
+            The actual constraint to declare
+        controller: PenaltyController
+            The penalty node elements
+        """
+        model: Pianist = controller.get_nlp.model
+        return model.normalized_friction_force(
+            controller.states["q"].cx_start,
+            controller.states["qdot"].cx_start,
+            controller.controls["tau"].cx_start,
+            mu=mu,
+        )
