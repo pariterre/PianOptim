@@ -144,9 +144,9 @@ def prepare_ocp(
 
 def main():
     model_path = "./models/pianist.bioMod"
-    n_shooting = 20
-    min_phase_time = 0.01
-    max_phase_time = 0.01
+    n_shooting = 40
+    min_phase_time = 0.1
+    max_phase_time = 0.1
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
 
     ocp = prepare_ocp(
@@ -164,7 +164,7 @@ def main():
     solv.set_maximum_iterations(500)  # TODO This should not be necessary
     # solv.set_linear_solver("ma57")
 
-    sol = ocp.solve(solv)
+    sol = ocp.solve(solv, expand_during_shake_tree=False)
     # sol.graphs()
     sol.animate()
 
